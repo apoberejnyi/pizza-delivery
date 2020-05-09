@@ -1,6 +1,14 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module Base.Domain where
 
-newtype Address = Address String
+import           Data.Aeson
+import           Data.Text
+import           GHC.Generics
+
+newtype Address = Address Text deriving (Show, Generic)
+instance FromJSON Address
+instance ToJSON Address
 
 type Latitude = Double
 type Longitude = Double

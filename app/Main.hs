@@ -1,11 +1,5 @@
 module Main where
 
-import           Lib
+import           Gateway.Start
 
-main :: IO ()
-main = someFunc
-
-data Order = Order {
-  items:: [String   ],
-  address:: String
-}
+main = startGateway

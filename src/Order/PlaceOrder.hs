@@ -14,12 +14,13 @@ placeOrder
   :: Monad m
   => ResolveAddress m
   -> GetAllRestaurants m
-  -> ProcessOrderRequestId
+  -> m ProcessOrderRequestId
   -> PlaceOrder m
 
-placeOrder getCoordinates getRestaurants requestId order = do
+placeOrder getCoordinates getRestaurants generateRequestId order = do
   coordinates <- getCoordinates (orderAddress order)
   restaurants <- getRestaurants
+  requestId <- generateRequestId
   let closestRestaurant = getClosestRestaurant restaurants coordinates
   pure $ ProcessOrderRequest
     { requestId = requestId
