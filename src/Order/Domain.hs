@@ -3,12 +3,12 @@
 
 module Order.Domain where
 
-import           Base.Domain       (Address)
-import           Data.Aeson
-import           Data.Text
-import           Data.UUID
-import           GHC.Generics
-import           Restaurant.Domain (RestaurantId)
+import Base.Domain (Address)
+import Data.Aeson
+import Data.Text
+import Data.UUID
+import GHC.Generics
+import Restaurant.Domain (RestaurantId)
 
 type PlaceOrder m = Order -> m ProcessOrderRequest
 type GetRequests m = RestaurantId -> m [ProcessOrderRequest]

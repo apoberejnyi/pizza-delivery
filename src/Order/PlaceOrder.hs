@@ -1,14 +1,14 @@
 module Order.PlaceOrder where
 
-import           Base.Distance
-import           Base.Domain
+import Base.Distance
+import Base.Domain
 
-import           Base.ResolveAddress
-import           Data.List.NonEmpty
-import           Data.UUID
-import qualified Data.UUID.V4        as UUID
-import           Order.Domain
-import           Restaurant.Domain
+import Base.ResolveAddress
+import Data.List.NonEmpty
+import Data.UUID
+import qualified Data.UUID.V4 as UUID
+import Order.Domain
+import Restaurant.Domain
 
 placeOrder
   :: Monad m

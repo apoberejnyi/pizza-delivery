@@ -6,15 +6,15 @@
 
 module Gateway.Start where
 
-import           Base.Domain
-import           Base.ResolveAddress
-import           Data.Aeson
-import           Data.List.NonEmpty
-import qualified Data.UUID.V4        as UUID
-import           Order.Domain
-import           Order.PlaceOrder
-import           Restaurant.Domain
-import           Yesod
+import Base.Domain
+import Base.ResolveAddress
+import Data.Aeson
+import Data.List.NonEmpty
+import qualified Data.UUID.V4 as UUID
+import Order.Domain
+import Order.PlaceOrder
+import Restaurant.Domain
+import Yesod
 
 data App = App
 
@@ -26,7 +26,7 @@ instance Yesod App
 
 postOrdersR :: HandlerFor App Value
 postOrdersR = do
-    order <- requireCheckJsonBody  :: Handler Order
+    order <- requireCheckJsonBody
     request <- liftIO $ placeOrder' order
     pure $ toJSON request
 

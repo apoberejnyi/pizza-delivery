@@ -1,5 +1,5 @@
 module Main where
 
-import           Gateway.Start
+import Gateway.Start
 
 main = startGateway
