@@ -25,12 +25,9 @@ import Database.PostgreSQL.Simple
 import Network.HTTP.Types (conflict409, created201)
 import Order (PlaceOrder, ProcessOrderRequestId (RequestId))
 import Order.PlaceOrder (placeOrder)
-import OrderOption ()
-import OrderOption.Register
-    ( RegisterOptionError (NameAlreadyInUse)
-    , RegisterOrderOption
-    , registerOrderOption
-    )
+import OrderOption (RegisterOptionError (NameAlreadyInUse), RegisterOrderOption)
+import OrderOption.Persistence.Insert (insertOrderOption)
+import OrderOption.Register (registerOrderOption)
 import Restaurant
     (GetAllRestaurants, Restaurant (Restaurant), RestaurantId (RestaurantId))
 import Yesod
@@ -78,7 +75,7 @@ registerOrderOption' optionPayload = do
       , connectUser = "postgres"
       , connectPassword = "admin"
       }
-  registerOrderOption conn optionPayload
+  registerOrderOption (insertOrderOption conn) optionPayload
 
 -- MOCK IMPLEMENTATIONS
 

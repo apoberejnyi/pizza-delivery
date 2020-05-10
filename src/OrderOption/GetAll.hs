@@ -1,4 +1,4 @@
-module OrderOption.GetAll where
+module OrderOption.GetAll (getAllOrderOptions) where
 
 import OrderOption (GetAllOrderOptions)
 

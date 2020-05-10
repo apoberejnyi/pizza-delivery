@@ -1,16 +1,28 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module OrderOption where
+module OrderOption
+    ( RegisterOrderOption
+    , DeleteOrderOption
+    , RegisterOptionError(..)
+    , GetAllOrderOptions
+    , OrderOption(..)
+    , OrderOptionId(..)
+    , OrderOptionPayload(..)
+    , PizzaSize(..)
+    ) where
 
-import Control.Monad
 import Data.Aeson
-import Data.Text
-import Data.UUID
-import GHC.Generics
+    (FromJSON, ToJSON, Value (Object), object, parseJSON, toJSON, (.:), (.=))
+import Data.Text (Text)
+import Data.UUID (UUID)
+import GHC.Generics (Generic)
 
 type GetAllOrderOptions m = m [OrderOption]
 type DeleteOrderOption m = OrderOptionId -> m ()
+
+data RegisterOptionError = NameAlreadyInUse
+type RegisterOrderOption m = OrderOptionPayload -> m (Either RegisterOptionError OrderOptionId)
 
 newtype OrderOptionId = OrderOptionId UUID deriving (Eq, Generic)
 instance ToJSON OrderOptionId
