@@ -3,21 +3,46 @@
 {-# LANGUAGE QuasiQuotes          #-}
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE TypeFamilies         #-}
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
-module Gateway.Start where
+module Gateway.Start (startGateway) where
 
-import Base.Coordinates
-import Base.ResolveAddress
-import Data.Aeson
-import Data.List.NonEmpty
+import Base.Coordinates (Coordinates (Coordinates))
+import Base.ResolveAddress (ResolveAddress)
+import Control.Monad.IO.Class (liftIO)
+import Data.Aeson (Value, toJSON)
+import Data.List.NonEmpty (NonEmpty ((:|)))
+import Data.Text (Text)
 import qualified Data.UUID.V4 as UUID
 import Database.PostgreSQL.Simple
-import Order
-import Order.PlaceOrder
-import OrderOption
+    ( connect
+    , connectDatabase
+    , connectHost
+    , connectPassword
+    , connectUser
+    , defaultConnectInfo
+    )
+import Network.HTTP.Types (conflict409, created201)
+import Order (PlaceOrder, ProcessOrderRequestId (RequestId))
+import Order.PlaceOrder (placeOrder)
+import OrderOption ()
 import OrderOption.Register
+    ( RegisterOptionError (NameAlreadyInUse)
+    , RegisterOrderOption
+    , registerOrderOption
+    )
 import Restaurant
+    (GetAllRestaurants, Restaurant (Restaurant), RestaurantId (RestaurantId))
 import Yesod
+    ( HandlerFor
+    , Yesod
+    , mkYesod
+    , parseRoutes
+    , renderRoute
+    , requireCheckJsonBody
+    , sendResponseStatus
+    , warp
+    )
 
 data App = App
 
@@ -34,13 +59,15 @@ postOrdersR = do
     request <- liftIO $ placeOrder' order
     pure $ toJSON request
 
-postOrderOptionsR :: HandlerFor App ()
+postOrderOptionsR :: HandlerFor App Value
 postOrderOptionsR = do
-    orderOption <- requireCheckJsonBody
-    liftIO $ registerOrderOption' orderOption
-    pure ()
+    payload <- requireCheckJsonBody
+    result <- liftIO $ registerOrderOption' payload
+    case result of
+      (Left NameAlreadyInUse) -> sendResponseStatus conflict409 $ toJSON ("Order option name already in use" :: Text)
+      (Right orderOption)     -> sendResponseStatus created201 $ toJSON orderOption
 
-
+startGateway :: IO ()
 startGateway = warp 3000 App
 
 registerOrderOption' :: RegisterOrderOption IO

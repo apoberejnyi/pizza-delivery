@@ -25,9 +25,17 @@ dependencies:
   - aeson
   - text
   - postgresql-simple
+  - bytestring
+  - http-types
 
 library:
   source-dirs: src
+
+ghc-options:
+  - -Werror
+  - -Wall
+  - -Wmissing-export-lists
+  - -Wmissing-import-lists
 
 executables:
   pizza-delivery-exe:
@@ -36,7 +44,6 @@ executables:
     ghc-options:
       - -threaded
       - -rtsopts
-      - -Wall
       - -with-rtsopts=-N
     dependencies:
       - pizza-delivery
