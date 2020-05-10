@@ -24,6 +24,7 @@ dependencies:
   - yesod
   - aeson
   - text
+  - postgresql-simple
 
 library:
   source-dirs: src
@@ -35,6 +36,7 @@ executables:
     ghc-options:
       - -threaded
       - -rtsopts
+      - -Wall
       - -with-rtsopts=-N
     dependencies:
       - pizza-delivery

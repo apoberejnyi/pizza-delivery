@@ -1,14 +1,14 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Order.Domain where
+module Order where
 
-import Base.Domain (Address)
+import Base.Address (Address)
 import Data.Aeson
 import Data.Text
 import Data.UUID
 import GHC.Generics
-import Restaurant.Domain (RestaurantId)
+import Restaurant (RestaurantId)
 
 type PlaceOrder m = Order -> m ProcessOrderRequest
 type GetRequests m = RestaurantId -> m [ProcessOrderRequest]

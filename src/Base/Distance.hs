@@ -4,7 +4,7 @@ module Base.Distance
   )
 where
 
-import           Base.Domain (Coordinates (Coordinates))
+import Base.Coordinates (Coordinates (Coordinates))
 
 type Distance = Double
 
