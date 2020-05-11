@@ -1,14 +1,19 @@
-module Order.PlaceOrder where
+module Order.Service (placeOrder) where
 
-import Base.Address
-import Base.Coordinates
-import Base.Distance
-import Base.ResolveAddress
-import Data.List.NonEmpty
-import Data.UUID
-import qualified Data.UUID.V4 as UUID
+import Base.Coordinates (Coordinates)
+import Base.Distance (Distance, getDistance)
+import Base.ResolveAddress (ResolveAddress)
+import Data.List.NonEmpty (NonEmpty ((:|)))
 import Order
-import Restaurant
+    ( PlaceOrder
+    , ProcessOrderRequest (ProcessOrderRequest)
+    , ProcessOrderRequestId
+    , orderAddress
+    , requestId
+    , requestOrder
+    , requestRestaurantId
+    )
+import Restaurant (GetAllRestaurants, Restaurant (Restaurant), restaurantId)
 
 placeOrder
   :: Monad m
@@ -16,14 +21,13 @@ placeOrder
   -> GetAllRestaurants m
   -> m ProcessOrderRequestId
   -> PlaceOrder m
-
 placeOrder getCoordinates getRestaurants generateRequestId order = do
   coordinates <- getCoordinates (orderAddress order)
   restaurants <- getRestaurants
-  requestId <- generateRequestId
+  rId <- generateRequestId
   let closestRestaurant = getClosestRestaurant restaurants coordinates
   pure $ ProcessOrderRequest
-    { requestId = requestId
+    { requestId = rId
     , requestOrder = order
     , requestRestaurantId = restaurantId closestRestaurant
     }

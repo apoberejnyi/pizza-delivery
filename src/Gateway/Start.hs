@@ -3,9 +3,8 @@
 {-# LANGUAGE QuasiQuotes          #-}
 {-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE TypeFamilies         #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
-module Gateway.Start (startGateway) where
+module Gateway.Start where
 
 import Base.Coordinates (Coordinates (Coordinates))
 import Base.ResolveAddress (ResolveAddress)
@@ -24,10 +23,10 @@ import Database.PostgreSQL.Simple
     )
 import Network.HTTP.Types (conflict409, created201)
 import Order (PlaceOrder, ProcessOrderRequestId (RequestId))
-import Order.PlaceOrder (placeOrder)
+import Order.Service (placeOrder)
 import OrderOption (RegisterOptionError (NameAlreadyInUse), RegisterOrderOption)
-import OrderOption.Persistence.Insert (insertOrderOption)
-import OrderOption.Register (registerOrderOption)
+import OrderOption.Persistence (insertOrderOption)
+import OrderOption.Service (registerOrderOption)
 import Restaurant
     (GetAllRestaurants, Restaurant (Restaurant), RestaurantId (RestaurantId))
 import Yesod

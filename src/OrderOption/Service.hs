@@ -1,17 +1,21 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module OrderOption.Register (registerOrderOption) where
+module OrderOption.Service (registerOrderOption, getAllOrderOptions) where
 
 import qualified Data.UUID.V4 as UUID
 import OrderOption
-    ( OrderOption (OrderOption)
+    ( GetAllOrderOptions
+    , OrderOption (OrderOption)
     , OrderOptionId (OrderOptionId)
     , RegisterOptionError
     , RegisterOrderOption
     )
 
-type InjectOrderOption = OrderOption -> IO (Either RegisterOptionError ())
 
+getAllOrderOptions :: Monad m => GetAllOrderOptions m
+getAllOrderOptions = undefined
+
+type InjectOrderOption = OrderOption -> IO (Either RegisterOptionError ())
 registerOrderOption :: InjectOrderOption -> RegisterOrderOption IO
 registerOrderOption injectOrderOption payload = do
     optionId <- OrderOptionId <$> UUID.nextRandom

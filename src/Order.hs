@@ -5,9 +5,10 @@ module Order where
 
 import Base.Address (Address)
 import Data.Aeson
-import Data.Text
-import Data.UUID
-import GHC.Generics
+    (FromJSON, ToJSON, Value (Object), object, parseJSON, toJSON, (.:), (.=))
+import Data.Text (Text)
+import Data.UUID (UUID)
+import GHC.Generics (Generic)
 import Restaurant (RestaurantId)
 
 type PlaceOrder m = Order -> m ProcessOrderRequest
@@ -21,9 +22,10 @@ data Order = Order
     }
 
 instance FromJSON Order where
-   parseJSON (Object v) =
+    parseJSON (Object v) =
        Order <$> v .: "items"
              <*> v .: "address"
+    parseJSON _ = mempty
 
 instance ToJSON Order where
     toJSON (Order items address) = object
@@ -41,8 +43,8 @@ data ProcessOrderRequest = ProcessOrderRequest
     }
 
 instance ToJSON ProcessOrderRequest where
-    toJSON (ProcessOrderRequest id order restaurantId) = object
-        [ "id" .= id
+    toJSON (ProcessOrderRequest oid order restaurantId) = object
+        [ "id" .= oid
         , "order" .= order
         , "restaurantId" .= restaurantId
         ]

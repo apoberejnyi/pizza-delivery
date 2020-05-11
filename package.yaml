@@ -34,7 +34,6 @@ library:
 ghc-options:
   - -Werror
   - -Wall
-  - -Wmissing-export-lists
   - -Wmissing-import-lists
 
 executables:
