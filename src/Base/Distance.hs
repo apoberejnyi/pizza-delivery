@@ -14,11 +14,11 @@ getDistance (Coordinates lat1 lon1) (Coordinates lat2 lon2) = earthRadiusKm * c
  where
   earthRadiusKm = 6371
 
-  dLat          = toRadians (lat2 - lat1)
-  dLon          = toRadians (lon2 - lon1)
+  dLat = toRadians (lat2 - lat1)
+  dLon = toRadians (lon2 - lon1)
 
-  lat1Radians   = toRadians lat1
-  lat2Radians   = toRadians lat2
+  lat1Radians = toRadians lat1
+  lat2Radians = toRadians lat2
 
   a =
     sin (dLat / 2)
@@ -30,4 +30,5 @@ getDistance (Coordinates lat1 lon1) (Coordinates lat2 lon2) = earthRadiusKm * c
 
   c = 2 * atan2 (sqrt a) (sqrt 1 - a)
 
+toRadians :: Floating a => a -> a
 toRadians degrees = degrees * pi / 180
