@@ -34,7 +34,6 @@ library:
 ghc-options:
   - -Werror
   - -Wall
-  - -Wmissing-import-lists
 
 executables:
   pizza-delivery-exe:

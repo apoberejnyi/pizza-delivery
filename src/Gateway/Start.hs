@@ -14,18 +14,24 @@ import Data.List.NonEmpty (NonEmpty ((:|)))
 import Data.Text (Text)
 import qualified Data.UUID.V4 as UUID
 import Database.PostgreSQL.Simple
-    ( connect
+    ( Connection
+    , connect
     , connectDatabase
     , connectHost
     , connectPassword
     , connectUser
     , defaultConnectInfo
     )
+import Gateway.Dto.OrderOption (orderOptionToDto)
 import Network.HTTP.Types (conflict409, created201)
 import Order (PlaceOrder, ProcessOrderRequestId (RequestId))
 import Order.Service (placeOrder)
-import OrderOption (RegisterOptionError (NameAlreadyInUse), RegisterOrderOption)
-import OrderOption.Persistence (insertOrderOption)
+import OrderOption
+    ( GetAllOrderOptions
+    , RegisterOptionError (NameAlreadyInUse)
+    , RegisterOrderOption
+    )
+import OrderOption.Persistence (insertOrderOption, queryAllOrderOptions)
 import OrderOption.Service (registerOrderOption)
 import Restaurant
     (GetAllRestaurants, Restaurant (Restaurant), RestaurantId (RestaurantId))
@@ -44,7 +50,7 @@ data App = App
 
 mkYesod "App" [parseRoutes|
 /orders OrdersR POST
-/orderOptions OrderOptionsR POST
+/orderOptions OrderOptionsR GET POST
 |]
 
 instance Yesod App
@@ -54,6 +60,11 @@ postOrdersR = do
     order <- requireCheckJsonBody
     request <- liftIO $ placeOrder' order
     pure $ toJSON request
+
+getOrderOptionsR :: HandlerFor App Value
+getOrderOptionsR = do
+    result <- liftIO getAllOrderOptions'
+    pure $ toJSON $ map orderOptionToDto result
 
 postOrderOptionsR :: HandlerFor App Value
 postOrderOptionsR = do
@@ -66,15 +77,21 @@ postOrderOptionsR = do
 startGateway :: IO ()
 startGateway = warp 3000 App
 
+getAllOrderOptions' :: GetAllOrderOptions IO
+getAllOrderOptions' =  mkPostgreSQLConnection >>= queryAllOrderOptions
+
 registerOrderOption' :: RegisterOrderOption IO
 registerOrderOption' optionPayload = do
-  conn <- connect defaultConnectInfo
-      { connectHost = "localhost"
-      , connectDatabase = "PizzaDelivery"
-      , connectUser = "postgres"
-      , connectPassword = "admin"
-      }
+  conn <- mkPostgreSQLConnection
   registerOrderOption (insertOrderOption conn) optionPayload
+
+mkPostgreSQLConnection :: IO Connection
+mkPostgreSQLConnection = connect defaultConnectInfo
+    { connectHost = "localhost"
+    , connectDatabase = "PizzaDelivery"
+    , connectUser = "postgres"
+    , connectPassword = "admin"
+    }
 
 -- MOCK IMPLEMENTATIONS
 
