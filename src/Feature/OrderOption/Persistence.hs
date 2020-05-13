@@ -4,7 +4,9 @@ module Feature.OrderOption.Persistence
     , queryAllOrderOptions
     ) where
 
+import Base.PG
 import Control.Exception
+import Control.Monad.IO.Class
 import Data.Aeson
 import qualified Data.Text as T
 import Data.UUID
@@ -18,16 +20,16 @@ type Name = T.Text
 type Sizes = Value
 type OrderOptionEntity = (Id, Name, Sizes)
 
-queryAllOrderOptions :: Connection -> IO [OrderOption]
-queryAllOrderOptions connection = do
-    results <- query_ connection "SELECT id, name, sizes from OrderOptions"
+queryAllOrderOptions :: MonadIO m => m [OrderOption]
+queryAllOrderOptions = do
+    results <- withConn $ \conn -> query_ conn "SELECT id, name, sizes from OrderOptions"
     pure $ fmap optionFromEntity results
 
--- TODO: Abstract connection into typeclass
-insertOrderOption :: Connection -> OrderOption -> IO (Either RegisterOptionError ())
-insertOrderOption connection option = catch (Right () <$ result) catchSqlException
+insertOrderOption :: MonadIO m => OrderOption -> m (Either RegisterOptionError ())
+insertOrderOption option = do
+    let result = withConn $ \conn -> execute conn insertQuery (optionToEntity option)
+    liftIO $ catch (Right () <$ result) catchSqlException
       where
-    result = execute connection insertQuery (optionToEntity option)
     insertQuery = "INSERT INTO OrderOptions (id, name, sizes) VALUES (?, ?, ?)"
     catchSqlException sqlError
         | sqlState sqlError == "23505" = pure $ Left NameAlreadyInUse
