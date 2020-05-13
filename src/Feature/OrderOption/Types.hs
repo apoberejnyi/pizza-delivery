@@ -1,19 +1,9 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module OrderOption
-    ( RegisterOrderOption
-    , DeleteOrderOption
-    , RegisterOptionError(..)
-    , GetAllOrderOptions
-    , OrderOption(..)
-    , OrderOptionId(..)
-    , OrderOptionPayload(..)
-    , PizzaSize(..)
-    ) where
+module Feature.OrderOption.Types where
 
 import Data.Aeson
-    (FromJSON, ToJSON, Value (Object), object, parseJSON, toJSON, (.:), (.=))
 import Data.Text (Text)
 import Data.UUID (UUID)
 import GHC.Generics (Generic)

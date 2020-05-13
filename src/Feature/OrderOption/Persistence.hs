@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module OrderOption.Persistence
+module Feature.OrderOption.Persistence
     ( insertOrderOption
     , queryAllOrderOptions
     ) where
@@ -11,7 +11,7 @@ import Data.UUID
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.ToField
 import Database.PostgreSQL.Simple.ToRow
-import OrderOption
+import Feature.OrderOption.Types
 
 type Id = UUID
 type Name = T.Text
@@ -23,6 +23,7 @@ queryAllOrderOptions connection = do
     results <- query_ connection "SELECT id, name, sizes from OrderOptions"
     pure $ fmap optionFromEntity results
 
+-- TODO: Abstract connection into typeclass
 insertOrderOption :: Connection -> OrderOption -> IO (Either RegisterOptionError ())
 insertOrderOption connection option = catch (Right () <$ result) catchSqlException
       where

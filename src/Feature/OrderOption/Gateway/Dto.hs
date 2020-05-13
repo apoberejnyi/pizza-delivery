@@ -1,13 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Gateway.Dto.OrderOption where
+module Feature.OrderOption.Gateway.Dto where
 
 import Data.Aeson (Value, object, (.=))
-import OrderOption
-    ( OrderOption (OrderOption)
-    , OrderOptionPayload (Pizza)
-    , PizzaSize (PizzaSize)
-    )
+import Feature.OrderOption.Types
 
 orderOptionToDto :: OrderOption -> Value
 orderOptionToDto (OrderOption ooid (Pizza name sizes)) = object

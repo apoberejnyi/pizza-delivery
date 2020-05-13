@@ -5,7 +5,6 @@ module Order where
 
 import Base.Address (Address)
 import Data.Aeson
-    (FromJSON, ToJSON, Value (Object), object, parseJSON, toJSON, (.:), (.=))
 import Data.Text (Text)
 import Data.UUID (UUID)
 import GHC.Generics (Generic)

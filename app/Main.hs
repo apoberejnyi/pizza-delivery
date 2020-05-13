@@ -1,6 +1,6 @@
 module Main (main) where
 
-import Gateway.Start (startGateway)
+import Foundation (startGateway)
 import Prelude (IO)
 
 main :: IO ()
