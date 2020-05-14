@@ -2,6 +2,7 @@
 
 module Feature.OrderOption.Gateway.Endpoints where
 
+import Base.HTTP
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
 import qualified Data.Text as T
@@ -19,7 +20,7 @@ endpoints = do
         json $ map OrderOptionDto result
 
     post "/api/orderOptions" $ do
-        OrderOptionPayloadDto payload <- jsonData
+        OrderOptionPayloadDto payload <- parseBody
         result <- lift $ OrderOption.register payload
         case result of
             Right ooid -> json ooid

@@ -12,10 +12,13 @@ instance ToJSON OrderOptionDto where
         object ["id" .= ooid] `lodashMerge` toJSON (OrderOptionPayloadDto payload)
 
 newtype OrderOptionPayloadDto = OrderOptionPayloadDto OrderOptionPayload
+
 instance FromJSON OrderOptionPayloadDto where
-    parseJSON jsonVal = do
-        payload <- parseJSON jsonVal
-        pure $ OrderOptionPayloadDto payload
+    parseJSON = withObject "OrderOptionPayloadDto" $ \v -> do
+        name <- v .: "name"
+        sizes <- v .: "sizes"
+        pure $ OrderOptionPayloadDto $ Pizza name (map unPizzaSizeDto sizes)
+
 instance ToJSON OrderOptionPayloadDto where
     toJSON (OrderOptionPayloadDto (Pizza name sizes)) = object
         [ "name" .= name
@@ -27,3 +30,17 @@ instance ToJSON OrderOptionPayloadDto where
             , "cost" .= cost
             ]
 
+newtype PizzaSizeDto = PizzaSizeDto { unPizzaSizeDto :: PizzaSize }
+
+instance FromJSON PizzaSizeDto where
+    parseJSON = withObject "PizzaSizeDto" $ \v -> do
+        size <- PizzaSize
+            <$> v .: "diameter"
+            <*> v .: "cost"
+        pure $ PizzaSizeDto size
+
+instance ToJSON PizzaSizeDto where
+    toJSON (PizzaSizeDto (PizzaSize diameter cost)) = object
+        [ "diameter" .= diameter
+        , "cost" .= cost
+        ]
