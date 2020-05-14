@@ -22,7 +22,7 @@ instance UUIDGen AppT where
     nextUUID = liftIO UUID.nextRandom
 
 instance OrderOption.Service AppT where
-    getAll = queryAllOrderOptions
+    getAll = getAllOrderOptions
     register = registerOrderOption
 
 instance OrderOption.Repo AppT where

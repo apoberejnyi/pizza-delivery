@@ -25,6 +25,7 @@ dependencies:
   - scotty
   - transformers
   - aeson
+  - aeson-extra
   - text
   - postgresql-simple
   - bytestring
