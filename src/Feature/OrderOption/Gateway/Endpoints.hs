@@ -19,6 +19,15 @@ endpoints = do
         result <- lift OrderOption.getAll
         json $ map OrderOptionDto result
 
+    get "/api/orderOptions/:id" $ do
+        ooid <- uuidParam "id"
+        result <- lift $ OrderOption.getById (OrderOptionId ooid)
+        case result of
+            Nothing -> do
+                status notFound404
+                json $ mconcat ["Order option ", show ooid, " not found"]
+            Just oo -> json $ OrderOptionDto oo
+
     post "/api/orderOptions" $ do
         OrderOptionPayloadDto payload <- parseBody
         result <- lift $ OrderOption.register payload

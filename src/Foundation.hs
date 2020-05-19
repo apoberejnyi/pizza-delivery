@@ -23,8 +23,10 @@ instance UUIDGen AppT where
 
 instance OrderOption.Service AppT where
     getAll = getAllOrderOptions
+    getById = getOrderOptionById
     register = registerOrderOption
 
 instance OrderOption.Repo AppT where
     queryAll = queryAllOrderOptions
+    queryById = queryOrderOptionById
     insert = insertOrderOption

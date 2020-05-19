@@ -2,12 +2,14 @@
 module Feature.OrderOption.Persistence
     ( insertOrderOption
     , queryAllOrderOptions
+    , queryOrderOptionById
     ) where
 
 import Base.PG
 import Control.Exception
 import Control.Monad.IO.Class
 import Data.Aeson
+import Data.Maybe
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.FromRow
 import Database.PostgreSQL.Simple.ToRow
@@ -17,6 +19,12 @@ queryAllOrderOptions :: MonadIO m => m [OrderOption]
 queryAllOrderOptions = do
     results <- withConn $ \conn -> query_ conn "SELECT id, name, sizes from OrderOptions"
     pure $ fmap unOrderOptionEntity results
+
+queryOrderOptionById :: MonadIO m => OrderOptionId -> m (Maybe OrderOption)
+queryOrderOptionById (OrderOptionId ooid) = do
+    results <- withConn $ \conn ->
+        query conn "SELECT id, name, sizes from OrderOptions WHERE id=? LIMIT 1" (Only ooid)
+    pure $ unOrderOptionEntity <$> listToMaybe results
 
 insertOrderOption :: MonadIO m => OrderOption -> m (Either RegisterOptionError ())
 insertOrderOption option = do
