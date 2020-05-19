@@ -14,6 +14,8 @@ type DeleteOrderOption m = OrderOptionId -> m ()
 data RegisterOptionError = NameAlreadyInUse
 type RegisterOrderOption m = OrderOptionPayload -> m (Either RegisterOptionError OrderOptionId)
 
+data DeleteOrderOptionError = OrderOptionNotFound OrderOptionId
+
 newtype OrderOptionId = OrderOptionId UUID deriving (Eq, Generic)
 instance ToJSON OrderOptionId
 

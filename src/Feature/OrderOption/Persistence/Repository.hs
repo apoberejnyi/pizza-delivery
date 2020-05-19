@@ -1,8 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Feature.OrderOption.Persistence
+module Feature.OrderOption.Persistence.Repository
     ( insertOrderOption
     , queryAllOrderOptions
     , queryOrderOptionById
+    , deleteOrderOption
     ) where
 
 import Base.PG
@@ -17,13 +18,13 @@ import Feature.OrderOption.Types
 
 queryAllOrderOptions :: MonadIO m => m [OrderOption]
 queryAllOrderOptions = do
-    results <- withConn $ \conn -> query_ conn "SELECT id, name, sizes from OrderOptions"
+    results <- withConn $ \conn -> query_ conn "SELECT id, name, sizes FROM OrderOptions"
     pure $ fmap unOrderOptionEntity results
 
 queryOrderOptionById :: MonadIO m => OrderOptionId -> m (Maybe OrderOption)
 queryOrderOptionById (OrderOptionId ooid) = do
     results <- withConn $ \conn ->
-        query conn "SELECT id, name, sizes from OrderOptions WHERE id=? LIMIT 1" (Only ooid)
+        query conn "SELECT id, name, sizes FROM OrderOptions WHERE id=? LIMIT 1" (Only ooid)
     pure $ unOrderOptionEntity <$> listToMaybe results
 
 insertOrderOption :: MonadIO m => OrderOption -> m (Either RegisterOptionError ())
@@ -35,6 +36,14 @@ insertOrderOption option = do
     catchSqlException sqlError
         | sqlState sqlError == "23505" = pure $ Left NameAlreadyInUse
         | otherwise = throw sqlError
+
+deleteOrderOption :: MonadIO m => OrderOptionId -> m (Either DeleteOrderOptionError ())
+deleteOrderOption (OrderOptionId ooid) = do
+    updateCount <- withConn $ \conn -> execute conn "DELETE FROM OrderOptions WHERE id=?" (Only ooid)
+    let result = if updateCount == 0
+        then Left $ OrderOptionNotFound (OrderOptionId ooid)
+        else Right ()
+    pure result
 
 
 newtype OrderOptionEntity = OrderOptionEntity { unOrderOptionEntity :: OrderOption }

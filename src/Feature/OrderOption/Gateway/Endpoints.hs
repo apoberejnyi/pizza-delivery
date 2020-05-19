@@ -28,6 +28,7 @@ endpoints = do
                 json $ mconcat ["Order option ", show ooid, " not found"]
             Just oo -> json $ OrderOptionDto oo
 
+    -- TODO: add validation that sizes are not empty
     post "/api/orderOptions" $ do
         OrderOptionPayloadDto payload <- parseBody
         result <- lift $ OrderOption.register payload
@@ -36,3 +37,12 @@ endpoints = do
             Left NameAlreadyInUse -> do
                 status conflict409
                 json ("Order option name is already in use" :: T.Text)
+
+    delete "/api/orderOptions/:id" $ do
+        ooid <- uuidParam "id"
+        result <- lift $ OrderOption.delete (OrderOptionId ooid)
+        case result of
+            Left (OrderOptionNotFound _) -> do
+                status notFound404
+                json $ mconcat ["Order option ", show ooid, " not found"]
+            Right _ -> finish
