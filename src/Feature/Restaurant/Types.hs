@@ -1,12 +1,12 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Restaurant
+module Feature.Restaurant.Types
     ( Restaurant(..)
     , RestaurantId(..)
     , GetAllRestaurants
     ) where
 
-import Base.Coordinates (Coordinates)
+import Base.Types.Coordinates (Coordinates)
 import Data.Aeson (FromJSON, ToJSON)
 import Data.List.NonEmpty (NonEmpty)
 import GHC.Generics (Generic)

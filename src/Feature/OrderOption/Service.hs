@@ -5,7 +5,7 @@ module Feature.OrderOption.Service
     , getAllOrderOptions
     ) where
 
-import Base.UUID
+import Base.Types.UUID
 import Feature.OrderOption.Contract as OO
 import Feature.OrderOption.Types
 

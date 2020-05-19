@@ -1,4 +1,4 @@
-module Base.UUID where
+module Base.Types.UUID where
 
 import Data.UUID
 

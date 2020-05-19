@@ -2,7 +2,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Foundation where
 
-import Base.UUID
+import Base.Types.UUID
 import Control.Monad.IO.Class
 import qualified Data.UUID.V4 as UUID
 import qualified Feature.OrderOption.Contract as OrderOption

@@ -1,10 +1,10 @@
-module Order.Service (placeOrder) where
+module Feature.Order.Service (placeOrder) where
 
-import Base.Coordinates (Coordinates)
-import Base.Distance (Distance, getDistance)
 import Base.ResolveAddress (ResolveAddress)
+import Base.Types.Coordinates (Coordinates)
+import Base.Types.Distance (Distance, getDistance)
 import Data.List.NonEmpty (NonEmpty ((:|)))
-import Order
+import Feature.Order.Types
     ( PlaceOrder
     , ProcessOrderRequest (ProcessOrderRequest)
     , ProcessOrderRequestId
@@ -13,7 +13,7 @@ import Order
     , requestOrder
     , requestRestaurantId
     )
-import Restaurant (GetAllRestaurants, Restaurant (Restaurant), restaurantId)
+import Feature.Restaurant.Types
 
 placeOrder
   :: Monad m

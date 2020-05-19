@@ -1,4 +1,4 @@
-module Base.Coordinates where
+module Base.Types.Coordinates where
 
 type Latitude = Double
 type Longitude = Double

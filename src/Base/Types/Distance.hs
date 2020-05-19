@@ -1,10 +1,10 @@
-module Base.Distance
+module Base.Types.Distance
   ( Distance
   , getDistance
   )
 where
 
-import Base.Coordinates (Coordinates (Coordinates))
+import Base.Types.Coordinates (Coordinates (Coordinates))
 
 type Distance = Double
 

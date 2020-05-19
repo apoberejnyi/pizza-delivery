@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module Base.Address where
+module Base.Types.Address where
 
 import Data.Aeson (FromJSON, ToJSON)
 import Data.Text (Text)

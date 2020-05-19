@@ -1,14 +1,14 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Order where
+module Feature.Order.Types where
 
-import Base.Address (Address)
+import Base.Types.Address (Address)
 import Data.Aeson
 import Data.Text (Text)
 import Data.UUID (UUID)
+import Feature.Restaurant.Types (RestaurantId)
 import GHC.Generics (Generic)
-import Restaurant (RestaurantId)
 
 type PlaceOrder m = Order -> m ProcessOrderRequest
 type GetRequests m = RestaurantId -> m [ProcessOrderRequest]
