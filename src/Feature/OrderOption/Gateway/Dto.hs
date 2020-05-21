@@ -17,12 +17,12 @@ instance FromJSON OrderOptionPayloadDto where
     parseJSON = withObject "OrderOptionPayloadDto" $ \v -> do
         name <- v .: "name"
         sizes <- v .: "sizes"
-        pure $ OrderOptionPayloadDto $ Pizza name (map unPizzaSizeDto sizes)
+        pure $ OrderOptionPayloadDto $ Pizza name (fmap unPizzaSizeDto sizes)
 
 instance ToJSON OrderOptionPayloadDto where
     toJSON (OrderOptionPayloadDto (Pizza name sizes)) = object
         [ "name" .= name
-        , "sizes" .= map sizeToJSON sizes
+        , "sizes" .= fmap sizeToJSON sizes
         ]
       where
         sizeToJSON (PizzaSize diameter cost) = object

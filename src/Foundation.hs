@@ -10,10 +10,18 @@ import qualified Feature.OrderOption.Gateway.Endpoints
 import qualified Feature.OrderOption.Persistence.Contract
 import qualified Feature.OrderOption.Persistence.Repository
 import qualified Feature.OrderOption.Service
+import qualified Feature.Restaurant.Contract
+import qualified Feature.Restaurant.Gateway.Endpoints
+import qualified Feature.Restaurant.Persistence.Contract
+import qualified Feature.Restaurant.Persistence.Repository
+import qualified Feature.Restaurant.Service
 import Web.Scotty.Trans
 
 startGateway :: IO ()
-startGateway = scottyT 3000 unAppT Feature.OrderOption.Gateway.Endpoints.endpoints
+startGateway = scottyT 3000 unAppT $ do
+    Feature.Restaurant.Gateway.Endpoints.endpoints
+    Feature.OrderOption.Gateway.Endpoints.endpoints
+    -- TODO: add nice default "not found" message
 
 newtype AppT a = AppT
   { unAppT :: IO a
@@ -33,3 +41,11 @@ instance Feature.OrderOption.Persistence.Contract.Repo AppT where
     queryById = Feature.OrderOption.Persistence.Repository.queryOrderOptionById
     insert = Feature.OrderOption.Persistence.Repository.insertOrderOption
     delete = Feature.OrderOption.Persistence.Repository.deleteOrderOption
+
+instance Feature.Restaurant.Contract.Service AppT where
+    getAll = Feature.Restaurant.Service.getAllRestaurants
+    register = Feature.Restaurant.Service.registerRestaurant
+
+instance Feature.Restaurant.Persistence.Contract.Repo AppT where
+    queryAll = Feature.Restaurant.Persistence.Repository.queryAllRestaurants
+    insert = Feature.Restaurant.Persistence.Repository.insertRestaurant

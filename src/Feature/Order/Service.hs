@@ -18,7 +18,7 @@ import Feature.Restaurant.Types
 placeOrder
   :: Monad m
   => ResolveAddress m
-  -> GetAllRestaurants m
+  -> m (NonEmpty Restaurant)
   -> m ProcessOrderRequestId
   -> PlaceOrder m
 placeOrder getCoordinates getRestaurants generateRequestId order = do
@@ -44,4 +44,4 @@ pickClosest :: RestaurantDistance -> RestaurantDistance -> RestaurantDistance
 pickClosest r1@(_, d1) r2@(_, d2) = if d1 < d2 then r1 else r2
 
 appendDistance :: Coordinates -> Restaurant -> (Restaurant, Distance)
-appendDistance c1 r@(Restaurant _ c2) = (r, getDistance c1 c2)
+appendDistance c1 r@Restaurant { restaurantCoordinates = c2 } = (r, getDistance c1 c2)

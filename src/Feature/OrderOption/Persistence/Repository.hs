@@ -51,7 +51,7 @@ newtype OrderOptionEntity = OrderOptionEntity { unOrderOptionEntity :: OrderOpti
 instance ToRow OrderOptionEntity where
     toRow (OrderOptionEntity orderOption) =
         let (OrderOption (OrderOptionId oid) (Pizza name sizes)) = orderOption in
-        toRow (oid, name, toJSON $ map PizzaSizeEntity sizes)
+        toRow (oid, name, toJSON $ fmap PizzaSizeEntity sizes)
 
 instance FromRow OrderOptionEntity where
     fromRow = do

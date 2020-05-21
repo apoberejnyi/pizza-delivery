@@ -28,7 +28,6 @@ endpoints = do
                 json $ mconcat ["Order option ", show ooid, " not found"]
             Just oo -> json $ OrderOptionDto oo
 
-    -- TODO: add validation that sizes are not empty
     post "/api/orderOptions" $ do
         OrderOptionPayloadDto payload <- parseBody
         result <- lift $ OrderOption.register payload

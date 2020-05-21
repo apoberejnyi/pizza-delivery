@@ -3,21 +3,25 @@
 module Feature.Restaurant.Types
     ( Restaurant(..)
     , RestaurantId(..)
-    , GetAllRestaurants
+    , RestaurantForCreate(..)
+    , CreateRestaurantError(..)
     ) where
 
 import Base.Types.Coordinates (Coordinates)
 import Data.Aeson (FromJSON, ToJSON)
-import Data.List.NonEmpty (NonEmpty)
+import qualified Data.Text as T
+import Data.UUID
 import GHC.Generics (Generic)
 
-newtype RestaurantId = RestaurantId String deriving (Eq, Generic)
+newtype RestaurantId = RestaurantId UUID deriving (Eq, Generic)
 instance FromJSON RestaurantId
 instance ToJSON RestaurantId
 
 data Restaurant = Restaurant
     { restaurantId          :: RestaurantId
+    , restaurantName        :: T.Text
     , restaurantCoordinates :: Coordinates
     }
 
-type GetAllRestaurants m = m (NonEmpty Restaurant)
+data RestaurantForCreate = RestaurantForCreate T.Text Coordinates
+data CreateRestaurantError = RestaurantNameAlreadyInUse

@@ -1,19 +1,14 @@
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Feature.OrderOption.Types where
 
 import Data.Aeson
+import Data.List.NonEmpty
 import Data.Text (Text)
 import Data.UUID (UUID)
 import GHC.Generics (Generic)
 
-type GetAllOrderOptions m = m [OrderOption]
-type DeleteOrderOption m = OrderOptionId -> m ()
-
 data RegisterOptionError = NameAlreadyInUse
-type RegisterOrderOption m = OrderOptionPayload -> m (Either RegisterOptionError OrderOptionId)
-
 data DeleteOrderOptionError = OrderOptionNotFound OrderOptionId
 
 newtype OrderOptionId = OrderOptionId UUID deriving (Eq, Generic)
@@ -26,7 +21,7 @@ data OrderOption = OrderOption
 
 data OrderOptionPayload = Pizza
     { pizzaName  :: Text
-    , pizzaSizes :: [PizzaSize]
+    , pizzaSizes :: NonEmpty PizzaSize
     }
 
 newtype PizzaCost = PizzaCost Int deriving (Eq, Generic)
