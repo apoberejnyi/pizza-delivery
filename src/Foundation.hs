@@ -2,8 +2,10 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Foundation where
 
+import Base.Concurrency
 import Base.HTTP
 import Base.Types.UUID
+import qualified Control.Concurrent.Async as Async
 import Control.Monad.IO.Class
 import qualified Data.UUID.V4 as UUID
 import qualified Feature.OrderOption.Contract
@@ -31,6 +33,9 @@ newtype AppT a = AppT
 
 instance UUIDGen AppT where
     nextUUID = liftIO UUID.nextRandom
+
+instance Concurrent AppT where
+    concurrently a b = liftIO $ Async.concurrently (unAppT a) (unAppT b)
 
 instance Feature.OrderOption.Contract.Service AppT where
     getAll = Feature.OrderOption.Service.getAllOrderOptions
