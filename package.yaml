@@ -23,6 +23,7 @@ dependencies:
   - uuid
   - resource-pool
   - scotty
+  - wai
   - transformers
   - aeson
   - aeson-extra

@@ -2,6 +2,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Foundation where
 
+import Base.HTTP
 import Base.Types.UUID
 import Control.Monad.IO.Class
 import qualified Data.UUID.V4 as UUID
@@ -21,7 +22,8 @@ startGateway :: IO ()
 startGateway = scottyT 3000 unAppT $ do
     Feature.Restaurant.Gateway.Endpoints.endpoints
     Feature.OrderOption.Gateway.Endpoints.endpoints
-    -- TODO: add nice default "not found" message
+    notFoundRoute
+
 
 newtype AppT a = AppT
   { unAppT :: IO a
