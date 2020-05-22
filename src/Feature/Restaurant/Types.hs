@@ -5,6 +5,7 @@ module Feature.Restaurant.Types
     , RestaurantId(..)
     , RestaurantForCreate(..)
     , CreateRestaurantError(..)
+    , DeleteRestaurantError(..)
     ) where
 
 import Base.Types.Coordinates (Coordinates)
@@ -25,3 +26,5 @@ data Restaurant = Restaurant
 
 data RestaurantForCreate = RestaurantForCreate T.Text Coordinates
 data CreateRestaurantError = RestaurantNameAlreadyInUse
+
+data DeleteRestaurantError = RestaurantNotFound RestaurantId

@@ -1,11 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Feature.Restaurant.Persistence.Repository where
+module Feature.Restaurant.Persistence.Repository
+    ( queryAllRestaurants
+    , queryRestaurantById
+    , insertRestaurant
+    , deleteRestaurant
+    ) where
 
 import Base.PG
 import Base.Types.Coordinates
 import Control.Exception
 import Control.Monad.IO.Class
+import Data.Maybe
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.FromRow
 import Database.PostgreSQL.Simple.ToRow
@@ -16,6 +22,12 @@ queryAllRestaurants = do
     result <- withConn $ \conn -> query_ conn "SELECT id, name, lat, lon FROM restaurants"
     pure $ fmap unRestaurantEntity result
 
+queryRestaurantById :: MonadIO m => RestaurantId -> m (Maybe Restaurant)
+queryRestaurantById (RestaurantId rid) = do
+    result <- withConn $ \conn ->
+        query conn "SELECT id, name, lat, lon FROM restaurants WHERE id=? LIMIT 1" (Only rid)
+    pure $ unRestaurantEntity <$> listToMaybe result
+
 insertRestaurant :: MonadIO m => Restaurant -> m (Either CreateRestaurantError ())
 insertRestaurant restaurant = do
     let result = withConn $ \conn -> execute conn insertQuery (RestaurantEntity restaurant)
@@ -25,6 +37,14 @@ insertRestaurant restaurant = do
     catchSqlException sqlError
         | sqlState sqlError == "23505" = pure $ Left RestaurantNameAlreadyInUse
         | otherwise = throw sqlError
+
+deleteRestaurant :: MonadIO m => RestaurantId -> m (Either DeleteRestaurantError ())
+deleteRestaurant rid'@(RestaurantId rid) = do
+    updateCount <- withConn $ \conn -> execute conn "DELETE FROM restaurants WHERE id=?" (Only rid)
+    let result = if updateCount == 0
+        then Left $ RestaurantNotFound rid'
+        else Right ()
+    pure result
 
 newtype RestaurantEntity = RestaurantEntity { unRestaurantEntity :: Restaurant }
 

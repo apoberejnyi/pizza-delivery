@@ -32,7 +32,9 @@ endpoints = do
         OrderOptionPayloadDto payload <- parseBody
         result <- lift $ OrderOption.register payload
         case result of
-            Right ooid -> json ooid
+            Right ooid -> do
+                status created201
+                json ooid
             Left NameAlreadyInUse -> do
                 status conflict409
                 json ("Order option name is already in use" :: T.Text)

@@ -46,8 +46,12 @@ instance Feature.OrderOption.Persistence.Contract.Repo AppT where
 
 instance Feature.Restaurant.Contract.Service AppT where
     getAll = Feature.Restaurant.Service.getAllRestaurants
+    getById = Feature.Restaurant.Service.getRestaurantById
     register = Feature.Restaurant.Service.registerRestaurant
+    delete = Feature.Restaurant.Service.deleteRestaurant
 
 instance Feature.Restaurant.Persistence.Contract.Repo AppT where
     queryAll = Feature.Restaurant.Persistence.Repository.queryAllRestaurants
+    queryById = Feature.Restaurant.Persistence.Repository.queryRestaurantById
     insert = Feature.Restaurant.Persistence.Repository.insertRestaurant
+    delete = Feature.Restaurant.Persistence.Repository.deleteRestaurant

@@ -7,6 +7,9 @@ import Feature.Restaurant.Types
 getAllRestaurants :: (Repo m) => m [Restaurant]
 getAllRestaurants = queryAll
 
+getRestaurantById :: (Repo m) => RestaurantId -> m (Maybe Restaurant)
+getRestaurantById = queryById
+
 registerRestaurant :: (Repo m, UUIDGen m) => RestaurantForCreate -> m (Either CreateRestaurantError RestaurantId)
 registerRestaurant (RestaurantForCreate name coordinates) = do
     uuid <- nextUUID
@@ -18,3 +21,6 @@ registerRestaurant (RestaurantForCreate name coordinates) = do
             }
     inserted <- insert restaurant
     pure $ rid <$ inserted
+
+deleteRestaurant :: (Repo m) => RestaurantId -> m (Either DeleteRestaurantError ())
+deleteRestaurant = delete
