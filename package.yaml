@@ -31,6 +31,8 @@ dependencies:
   - postgresql-simple
   - bytestring
   - http-types
+  - req
+  - either
   - envy
   - load-env
 

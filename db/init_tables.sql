@@ -1,3 +1,12 @@
+CREATE TABLE orders (
+    id uuid NOT NULL,
+    items uuid [] NOT NULL,
+    address text NOT NULL,
+    restaurantId uuid NOT NULL,
+
+    CONSTRAINT orders_pkey PRIMARY KEY (id)
+);
+
 CREATE TABLE orderoptions (
     id uuid NOT NULL,
     name text NOT NULL,

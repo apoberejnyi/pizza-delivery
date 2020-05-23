@@ -2,7 +2,8 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Feature.Order.Service
-    ( placeOrder
+    ( getAllOrders
+    , placeOrder
     ) where
 
 import Base.Concurrency
@@ -10,32 +11,44 @@ import Base.Types.Address
 import Base.Types.Coordinates
 import Base.Types.Distance
 import Base.Types.UUID
-import Control.Monad.IO.Class
+import Control.Applicative
+import Data.Bifunctor
+import Data.Either.Combinators
 import Data.List.NonEmpty
+import Data.UUID
+import qualified Feature.Order.Persistence.Contract as Order
 import Feature.Order.Types
 import qualified Feature.Restaurant.Contract as Restaurant
 import Feature.Restaurant.Types
 
-type PlaceOrder m = (UUIDGen m, MonadIO m, Concurrent m, Restaurant.Service m, AddressResolver m)
+getAllOrders :: (Order.Repo m) => m [Order]
+getAllOrders = Order.queryAll
 
-placeOrder :: PlaceOrder m => Order -> m (Either PlaceOrderError ProcessOrderRequest)
-placeOrder order@Order{..} = do
-    (restaurants, coordinates) <- concurrently Restaurant.getAll (resolveAddress orderAddress)
-    case nonEmpty restaurants of
-        Nothing -> pure $ Left NoRestaurantsAvailable
-        Just rs -> do
-            rid <- nextUUID
-            let closestRestaurant = getClosestRestaurant rs coordinates
-            pure $ Right $ ProcessOrderRequest
-                { requestId = ProcessOrderRequestId rid
-                , requestOrder = order
-                , requestRestaurantId = restaurantId closestRestaurant
-                }
+-- TODO: Validate items existence
+type PlaceOrder m = (UUIDGen m, Concurrent m, Restaurant.Service m, AddressResolver m, Order.Repo m)
+placeOrder :: PlaceOrder m => OrderPayload -> m (Either PlaceOrderError Order)
+placeOrder payload@OrderPayload{..} = do
+    uuid <- nextUUID
+    (rs, cs) <- concurrently Restaurant.getAll (resolveAddress orderPayloadAddress)
+
+    let restaurants = maybeToRight NoRestaurantsAvailable (nonEmpty rs)
+    let coordinates = first OnAddressResolution cs
+    let order = uncurry (mkOrder uuid payload) <$> liftA2 (,) restaurants coordinates
+
+    mapM_ Order.insert order
+    pure order
+
+mkOrder :: UUID -> OrderPayload -> NonEmpty Restaurant -> Coordinates -> Order
+mkOrder uuid payload rs c = Order
+    { orderId = OrderId uuid
+    , orderPayload = payload
+    , orderRestaurantId = restaurantId (getClosestRestaurant rs c)
+    }
 
 getClosestRestaurant :: NonEmpty Restaurant -> Coordinates -> Restaurant
 getClosestRestaurant restaurants coordinates = fst closest where
-    closest         = foldr pickClosest first rest
-    (first :| rest) = appendDistance coordinates <$> restaurants
+    closest         = foldr pickClosest x xs
+    (x :| xs) = appendDistance coordinates <$> restaurants
 
 type RestaurantDistance = (Restaurant, Distance)
 

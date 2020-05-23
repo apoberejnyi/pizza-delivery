@@ -39,24 +39,30 @@ data SizeDto = SizeDto
     }
     deriving (Show, Generic)
 
-instance DTO OrderOptionDto OrderOption where
-    toModel OrderOptionDto{..} = OrderOption (OrderOptionId id) (Pizza name (fmap toModel sizes))
-    fromModel (OrderOption (OrderOptionId id') (Pizza name' sizes')) = OrderOptionDto
+instance FromDTO OrderOptionDto OrderOption where
+    fromDTO OrderOptionDto{..} = OrderOption (OrderOptionId id) (Pizza name (fmap fromDTO sizes))
+
+instance ToDTO OrderOptionDto OrderOption where
+    toDTO (OrderOption (OrderOptionId id') (Pizza name' sizes')) = OrderOptionDto
         { id = id'
         , name = name'
-        , sizes = fmap fromModel sizes'
+        , sizes = fmap toDTO sizes'
         }
 
-instance DTO OrderOptionPayloadDto OrderOptionPayload where
-    toModel OrderOptionPayloadDto{..} = Pizza name (fmap toModel sizes)
-    fromModel (Pizza name' sizes') = OrderOptionPayloadDto
+instance FromDTO OrderOptionPayloadDto OrderOptionPayload where
+    fromDTO OrderOptionPayloadDto{..} = Pizza name (fmap fromDTO sizes)
+
+instance ToDTO OrderOptionPayloadDto OrderOptionPayload where
+    toDTO (Pizza name' sizes') = OrderOptionPayloadDto
         { name = name'
-        , sizes = fmap fromModel sizes'
+        , sizes = fmap toDTO sizes'
         }
 
-instance DTO SizeDto PizzaSize where
-    toModel (SizeDto diameter cost) = PizzaSize (PizzaDiameter diameter) (PizzaCost cost)
-    fromModel (PizzaSize (PizzaDiameter diameter') (PizzaCost cost')) = SizeDto
+instance FromDTO SizeDto PizzaSize where
+    fromDTO (SizeDto diameter cost) = PizzaSize (PizzaDiameter diameter) (PizzaCost cost)
+
+instance ToDTO SizeDto PizzaSize where
+    toDTO (PizzaSize (PizzaDiameter diameter') (PizzaCost cost')) = SizeDto
         { diameter = diameter'
         , cost = cost'
         }

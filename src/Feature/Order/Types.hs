@@ -1,20 +1,21 @@
 module Feature.Order.Types where
 
-import Base.Types.Address (Address)
-import Data.Text (Text)
-import Data.UUID (UUID)
-import Feature.Restaurant.Types (RestaurantId)
+import Base.Types.Address
+import Data.UUID
+import Feature.OrderOption.Types
+import Feature.Restaurant.Types
 
-data Order = Order
-    { orderItems   :: [Text]
-    , orderAddress :: Address
+data OrderPayload = OrderPayload
+    { orderPayloadItems   :: [OrderOptionId]
+    , orderPayloadAddress :: Address
     }
 
 data PlaceOrderError = NoRestaurantsAvailable
+    | OnAddressResolution ResolveAddressError
 
-newtype ProcessOrderRequestId = ProcessOrderRequestId UUID
-data ProcessOrderRequest = ProcessOrderRequest
-    { requestId           :: ProcessOrderRequestId
-    , requestOrder        :: Order
-    , requestRestaurantId :: RestaurantId
+newtype OrderId = OrderId { unOrderId :: UUID }
+data Order = Order
+    { orderId           :: OrderId
+    , orderPayload      :: OrderPayload
+    , orderRestaurantId :: RestaurantId
     }

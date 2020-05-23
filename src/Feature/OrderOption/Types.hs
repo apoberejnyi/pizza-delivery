@@ -11,8 +11,7 @@ import GHC.Generics (Generic)
 data RegisterOptionError = NameAlreadyInUse
 data DeleteOrderOptionError = OrderOptionNotFound OrderOptionId
 
-newtype OrderOptionId = OrderOptionId UUID deriving (Eq, Generic)
-instance ToJSON OrderOptionId
+newtype OrderOptionId = OrderOptionId { unOrderOptionId :: UUID }
 
 data OrderOption = OrderOption
     { orderOptionId      :: OrderOptionId

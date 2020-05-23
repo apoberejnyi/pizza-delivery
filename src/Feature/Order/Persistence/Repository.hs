@@ -1,0 +1,51 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
+
+module Feature.Order.Persistence.Repository where
+
+import Base.PG
+import Base.Types.Address
+import Control.Monad.IO.Class
+import Database.PostgreSQL.Simple
+import Database.PostgreSQL.Simple.FromRow
+import Database.PostgreSQL.Simple.ToRow
+import Database.PostgreSQL.Simple.Types
+import Feature.Order.Types
+import Feature.OrderOption.Types
+import Feature.Restaurant.Types
+
+queryAllOrders :: MonadIO m => m [Order]
+queryAllOrders = do
+    results <- withConn $ \conn -> query_ conn "SELECT id, items, address, restaurantId FROM orders"
+    pure $ fmap unOrderEntity results
+
+insertOrder :: MonadIO m => Order -> m ()
+insertOrder order = do
+    _ <- withConn $ \conn -> execute conn insertQuery (OrderEntity order)
+    pure ()
+        where
+    insertQuery = "INSERT INTO orders (id, items, address, restaurantId) VALUES (?, ?::uuid[], ?, ?)"
+
+newtype OrderEntity = OrderEntity { unOrderEntity :: Order }
+
+instance ToRow OrderEntity where
+    toRow (OrderEntity Order{..}) =
+        let OrderPayload{..} = orderPayload in
+        toRow
+            ( unOrderId orderId
+            , PGArray $ unOrderOptionId <$> orderPayloadItems
+            , unAddress orderPayloadAddress
+            , unRestaurantId orderRestaurantId
+            )
+
+instance FromRow OrderEntity where
+    fromRow = do
+        oid <- field; PGArray items <- field; address <- field; restaurantId <- field
+        pure $ OrderEntity $ Order
+            { orderId = OrderId oid
+            , orderPayload = OrderPayload
+                { orderPayloadItems = OrderOptionId <$> items
+                , orderPayloadAddress = Address address
+                }
+            , orderRestaurantId = RestaurantId restaurantId
+            }

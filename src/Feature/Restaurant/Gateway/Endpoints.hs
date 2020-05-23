@@ -32,9 +32,9 @@ endpoints = do
         RestaurantForCreateDto payload <- parseBody
         result <- lift $ Restaurant.register payload
         case result of
-            Right ooid -> do
+            Right rid -> do
                 status status201
-                json ooid
+                json $ unRestaurantId rid
             Left RestaurantNameAlreadyInUse -> do
                 status conflict409
                 json ("Restaurant name is already in use" :: T.Text)

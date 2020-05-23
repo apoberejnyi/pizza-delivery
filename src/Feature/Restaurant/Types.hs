@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveGeneric #-}
-
 module Feature.Restaurant.Types
     ( Restaurant(..)
     , RestaurantId(..)
@@ -9,14 +7,10 @@ module Feature.Restaurant.Types
     ) where
 
 import Base.Types.Coordinates (Coordinates)
-import Data.Aeson (FromJSON, ToJSON)
 import qualified Data.Text as T
 import Data.UUID
-import GHC.Generics (Generic)
 
-newtype RestaurantId = RestaurantId UUID deriving (Eq, Generic)
-instance FromJSON RestaurantId
-instance ToJSON RestaurantId
+newtype RestaurantId = RestaurantId { unRestaurantId :: UUID }
 
 data Restaurant = Restaurant
     { restaurantId          :: RestaurantId

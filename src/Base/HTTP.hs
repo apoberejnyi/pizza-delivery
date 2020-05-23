@@ -13,9 +13,11 @@ import Network.HTTP.Types
 import Network.Wai
 import Web.Scotty.Trans as ST
 
-class DTO d m where
-    toModel :: d -> m
-    fromModel :: m -> d
+class FromDTO d m where
+    fromDTO :: d -> m
+
+class ToDTO d m where
+    toDTO :: m -> d
 
 parseBody :: (FromJSON a, MonadIO m, ScottyError t) => ActionT t m a
 parseBody = do
