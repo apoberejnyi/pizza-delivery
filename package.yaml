@@ -31,6 +31,8 @@ dependencies:
   - postgresql-simple
   - bytestring
   - http-types
+  - envy
+  - load-env
 
 library:
   source-dirs: src
