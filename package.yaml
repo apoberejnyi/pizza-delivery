@@ -27,7 +27,6 @@ dependencies:
   - wai
   - transformers
   - aeson
-  - aeson-extra
   - text
   - postgresql-simple
   - bytestring

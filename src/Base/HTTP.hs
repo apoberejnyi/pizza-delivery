@@ -1,4 +1,5 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
 
 module Base.HTTP where
 
@@ -11,6 +12,10 @@ import Data.UUID
 import Network.HTTP.Types
 import Network.Wai
 import Web.Scotty.Trans as ST
+
+class DTO d m where
+    toModel :: d -> m
+    fromModel :: m -> d
 
 parseBody :: (FromJSON a, MonadIO m, ScottyError t) => ActionT t m a
 parseBody = do

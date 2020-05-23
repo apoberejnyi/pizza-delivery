@@ -24,11 +24,11 @@ data OrderOptionPayload = Pizza
     , pizzaSizes :: NonEmpty PizzaSize
     }
 
-newtype PizzaCost = PizzaCost Int deriving (Eq, Generic)
+newtype PizzaCost = PizzaCost Double deriving (Eq, Generic)
 instance ToJSON PizzaCost
 instance FromJSON PizzaCost
 
-newtype PizzaDiameter = PizzaDiameter Int deriving (Eq, Generic)
+newtype PizzaDiameter = PizzaDiameter Double deriving (Eq, Generic)
 instance ToJSON PizzaDiameter
 instance FromJSON PizzaDiameter
 

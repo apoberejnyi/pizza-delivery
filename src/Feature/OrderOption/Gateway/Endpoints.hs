@@ -1,4 +1,5 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Feature.OrderOption.Gateway.Endpoints where
 
@@ -17,7 +18,7 @@ endpoints :: (MonadIO m, OrderOption.Service m) => ScottyT LT.Text m ()
 endpoints = do
     get "/api/orderOptions" $ do
         result <- lift OrderOption.getAll
-        json $ map OrderOptionDto result
+        json (map fromModel result :: [OrderOptionDto])
 
     get "/api/orderOptions/:id" $ do
         ooid <- uuidParam "id"
@@ -26,11 +27,11 @@ endpoints = do
             Nothing -> do
                 status notFound404
                 json $ mconcat ["Order option ", show ooid, " not found"]
-            Just oo -> json $ OrderOptionDto oo
+            Just oo -> json (fromModel oo :: OrderOptionDto)
 
     post "/api/orderOptions" $ do
-        OrderOptionPayloadDto payload <- parseBody
-        result <- lift $ OrderOption.register payload
+        (payload :: OrderOptionPayloadDto) <- parseBody
+        result <- lift $ OrderOption.register (toModel payload)
         case result of
             Right ooid -> do
                 status created201

@@ -1,46 +1,62 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RecordWildCards       #-}
 
 module Feature.OrderOption.Gateway.Dto where
 
+import Base.HTTP
 import Data.Aeson
-import Data.Aeson.Extra.Merge
+import Data.List.NonEmpty
+import Data.Text
+import Data.UUID
 import Feature.OrderOption.Types
+import GHC.Generics
+import Prelude hiding (id)
 
-newtype OrderOptionDto = OrderOptionDto OrderOption
-instance ToJSON OrderOptionDto where
-    toJSON (OrderOptionDto (OrderOption ooid payload)) =
-        object ["id" .= ooid] `lodashMerge` toJSON (OrderOptionPayloadDto payload)
+instance FromJSON OrderOptionDto
+instance ToJSON OrderOptionDto
+data OrderOptionDto = OrderOptionDto
+    { id    :: UUID
+    , name  :: Text
+    , sizes :: NonEmpty SizeDto
+    }
+    deriving (Show, Generic)
 
-newtype OrderOptionPayloadDto = OrderOptionPayloadDto OrderOptionPayload
+instance FromJSON OrderOptionPayloadDto
+instance ToJSON OrderOptionPayloadDto
+data OrderOptionPayloadDto = OrderOptionPayloadDto
+    { name  :: Text
+    , sizes :: NonEmpty SizeDto
+    }
+    deriving (Show, Generic)
 
-instance FromJSON OrderOptionPayloadDto where
-    parseJSON = withObject "OrderOptionPayloadDto" $ \v -> do
-        name <- v .: "name"
-        sizes <- v .: "sizes"
-        pure $ OrderOptionPayloadDto $ Pizza name (fmap unPizzaSizeDto sizes)
+instance FromJSON SizeDto
+instance ToJSON SizeDto
+data SizeDto = SizeDto
+    { diameter :: Double
+    , cost     :: Double
+    }
+    deriving (Show, Generic)
 
-instance ToJSON OrderOptionPayloadDto where
-    toJSON (OrderOptionPayloadDto (Pizza name sizes)) = object
-        [ "name" .= name
-        , "sizes" .= fmap sizeToJSON sizes
-        ]
-      where
-        sizeToJSON (PizzaSize diameter cost) = object
-            [ "diameter" .= diameter
-            , "cost" .= cost
-            ]
+instance DTO OrderOptionDto OrderOption where
+    toModel OrderOptionDto{..} = OrderOption (OrderOptionId id) (Pizza name (fmap toModel sizes))
+    fromModel (OrderOption (OrderOptionId id') (Pizza name' sizes')) = OrderOptionDto
+        { id = id'
+        , name = name'
+        , sizes = fmap fromModel sizes'
+        }
 
-newtype PizzaSizeDto = PizzaSizeDto { unPizzaSizeDto :: PizzaSize }
+instance DTO OrderOptionPayloadDto OrderOptionPayload where
+    toModel OrderOptionPayloadDto{..} = Pizza name (fmap toModel sizes)
+    fromModel (Pizza name' sizes') = OrderOptionPayloadDto
+        { name = name'
+        , sizes = fmap fromModel sizes'
+        }
 
-instance FromJSON PizzaSizeDto where
-    parseJSON = withObject "PizzaSizeDto" $ \v -> do
-        size <- PizzaSize
-            <$> v .: "diameter"
-            <*> v .: "cost"
-        pure $ PizzaSizeDto size
-
-instance ToJSON PizzaSizeDto where
-    toJSON (PizzaSizeDto (PizzaSize diameter cost)) = object
-        [ "diameter" .= diameter
-        , "cost" .= cost
-        ]
+instance DTO SizeDto PizzaSize where
+    toModel (SizeDto diameter cost) = PizzaSize (PizzaDiameter diameter) (PizzaCost cost)
+    fromModel (PizzaSize (PizzaDiameter diameter') (PizzaCost cost')) = SizeDto
+        { diameter = diameter'
+        , cost = cost'
+        }
