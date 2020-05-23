@@ -4,40 +4,32 @@
 
 module Client.OpenCage
     ( Client.OpenCage.resolveAddress
-    , ResolveAddressError
     , OpenCageApiEnv(..)
     ) where
 
 import Base.Types.Address
 import Base.Types.Coordinates
-import Control.Monad.Catch
 import Data.Aeson
 import Data.Text
 import GHC.Generics
 import Network.HTTP.Req
 import System.Envy
 
-resolveAddress :: (MonadHttp m, MonadThrow m) => OpenCageApiEnv -> Address -> m (Either ResolveAddressError Coordinates)
-resolveAddress OpenCageApiEnv{..} (Address address) = do
+resolveAddress :: (MonadHttp m) => OpenCageApiEnv -> IffyAddress -> m [(Address, Coordinates)]
+resolveAddress OpenCageApiEnv{..} (IffyAddress address) = do
     let url = https "api.opencagedata.com" /: "geocode" /: "v1" /: "json"
     response <- req GET url NoReqBody jsonResponse $
         "q" =: address <>
         "key" =: apiKey <>
         "no_annotations" =: ("1" :: Text) <>
+        "language" =: ("ru" :: Text) <>
         "countrycode" =: ("by" :: Text)
+    pure $ pickAddresses $ responseBody response
 
-    let result = case pickCoordinates $ responseBody response of
-            []                 -> Left NoCoordinatesFound
-            [(coordinates, _)] -> Right coordinates
-            xs                 -> Left $ AmbiguousCoordinates (snd <$> xs)
-    pure result
-
--- TODO: pull the "category" component only
--- TODO: Move ambiguity handling into the consuming code
-pickCoordinates :: ForwardGeocodingResponse -> [(Coordinates, Address)]
-pickCoordinates res = mapResult <$> results res
+pickAddresses :: ForwardGeocodingResponse -> [(Address, Coordinates)]
+pickAddresses res = mapResult <$> results res
         where
-    mapResult (GeocodingResult geometry address) = (asCoordinates geometry, Address address)
+    mapResult (GeocodingResult geometry address) = (Address address, asCoordinates geometry)
     asCoordinates (Geometry lat lon) = Coordinates lat lon
 
 instance FromJSON ForwardGeocodingResponse

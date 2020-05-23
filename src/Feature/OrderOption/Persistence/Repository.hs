@@ -3,6 +3,7 @@ module Feature.OrderOption.Persistence.Repository
     ( insertOrderOption
     , queryAllOrderOptions
     , queryOrderOptionById
+    , filterExistingOrderOptionIds
     , deleteOrderOption
     ) where
 
@@ -10,6 +11,7 @@ import Base.PG
 import Control.Exception
 import Control.Monad.IO.Class
 import Data.Aeson
+import Data.List.NonEmpty
 import Data.Maybe
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.FromRow
@@ -26,6 +28,13 @@ queryOrderOptionById (OrderOptionId ooid) = do
     results <- withConn $ \conn ->
         query conn "SELECT id, name, sizes FROM OrderOptions WHERE id=? LIMIT 1" (Only ooid)
     pure $ unOrderOptionEntity <$> listToMaybe results
+
+filterExistingOrderOptionIds :: MonadIO m => NonEmpty IffyOrderOptionId -> m [OrderOptionId]
+filterExistingOrderOptionIds ids = do
+    results <- withConn $ \conn -> query conn "SELECT id FROM OrderOptions WHERE id in ?" ids'
+    pure $ fmap (OrderOptionId . fromOnly) results
+        where
+    ids' = Only $ In $ toList (unIffyOrderOptionId <$> ids)
 
 insertOrderOption :: MonadIO m => OrderOption -> m (Either RegisterOptionError ())
 insertOrderOption option = do

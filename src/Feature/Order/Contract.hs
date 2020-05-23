@@ -4,4 +4,4 @@ import Feature.Order.Types
 
 class Monad m => Service m where
     getAll :: m [Order]
-    placeOrder :: OrderPayload -> m (Either PlaceOrderError Order)
+    placeOrder :: IffyOrderPayload -> m (Either PlaceOrderError Order)

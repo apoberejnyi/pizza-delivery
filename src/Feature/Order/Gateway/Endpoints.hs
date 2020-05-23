@@ -8,11 +8,13 @@ import Base.Types.Address
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
 import Data.Aeson hiding (json)
+import Data.List.NonEmpty
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
 import qualified Feature.Order.Contract as Order
 import Feature.Order.Gateway.Dto
 import Feature.Order.Types
+import Feature.OrderOption.Types
 import Network.HTTP.Types
 import Web.Scotty.Trans
 
@@ -20,10 +22,10 @@ endpoints :: (MonadIO m, Order.Service m) => ScottyT LT.Text m ()
 endpoints = do
     get "/api/orders" $ do
         result <- lift Order.getAll
-        json (map toDTO result :: [OrderDto])
+        json (fmap toDTO result :: [OrderDto])
 
     post "/api/orders" $ do
-        (payload :: OrderPayloadDto) <- parseBody
+        (payload :: IffyOrderPayloadDto) <- parseBody
         result <- lift $ Order.placeOrder (fromDTO payload)
         case result of
             Right order -> do
@@ -32,13 +34,15 @@ endpoints = do
             Left NoRestaurantsAvailable -> do
                 status badRequest400
                 json ("No restaurant is available to process the order" :: T.Text)
-            Left (OnAddressResolution NoCoordinatesFound) -> do
+            Left AddressNotFound -> do
                 status badRequest400
                 json ("Unable to identify order address" :: T.Text)
-            Left (OnAddressResolution (AmbiguousCoordinates addresses)) -> do
+            Left (AmbiguousAddress addresses) -> do
                 status badRequest400
                 json $ object
                     [ "error" .= ("Provided address is ambiguous" :: T.Text)
-                    , "variants" .= (unAddress <$> addresses :: [T.Text])
+                    , "variants" .= (unAddress <$> addresses :: NonEmpty T.Text)
                     ]
-
+            Left (UnknownOrderOption ooid) -> do
+                status badRequest400
+                json $ mconcat ["Unknown order option ", show $ unIffyOrderOptionId ooid]

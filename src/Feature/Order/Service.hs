@@ -11,39 +11,69 @@ import Base.Types.Address
 import Base.Types.Coordinates
 import Base.Types.Distance
 import Base.Types.UUID
-import Control.Applicative
-import Data.Bifunctor
+import Control.Monad
 import Data.Either.Combinators
-import Data.List.NonEmpty
+import Data.List.NonEmpty as NEL
 import Data.UUID
 import qualified Feature.Order.Persistence.Contract as Order
 import Feature.Order.Types
+import qualified Feature.OrderOption.Contract as OrderOption
+import Feature.OrderOption.Types
 import qualified Feature.Restaurant.Contract as Restaurant
 import Feature.Restaurant.Types
 
 getAllOrders :: (Order.Repo m) => m [Order]
 getAllOrders = Order.queryAll
 
--- TODO: Validate items existence
-type PlaceOrder m = (UUIDGen m, Concurrent m, Restaurant.Service m, AddressResolver m, Order.Repo m)
-placeOrder :: PlaceOrder m => OrderPayload -> m (Either PlaceOrderError Order)
-placeOrder payload@OrderPayload{..} = do
+type PlaceOrder m =
+    ( UUIDGen m
+    , Concurrent m
+    , Restaurant.Service m
+    , OrderOption.Service m
+    , AddressResolver m
+    , Order.Repo m
+    )
+
+placeOrder :: PlaceOrder m => IffyOrderPayload -> m (Either PlaceOrderError Order)
+placeOrder IffyOrderPayload{..} = do
     uuid <- nextUUID
-    (rs, cs) <- concurrently Restaurant.getAll (resolveAddress orderPayloadAddress)
+    (rs, addresses, items') <- concurrently3
+        Restaurant.getAll
+        (resolveAddress orderPayloadAddress)
+        (validateOrderPayloadItems orderPayloadItems)
 
     let restaurants = maybeToRight NoRestaurantsAvailable (nonEmpty rs)
-    let coordinates = first OnAddressResolution cs
-    let order = uncurry (mkOrder uuid payload) <$> liftA2 (,) restaurants coordinates
+    let order = join $ mkOrder uuid addresses <$> restaurants <*> items'
 
     mapM_ Order.insert order
     pure order
 
-mkOrder :: UUID -> OrderPayload -> NonEmpty Restaurant -> Coordinates -> Order
-mkOrder uuid payload rs c = Order
-    { orderId = OrderId uuid
-    , orderPayload = payload
-    , orderRestaurantId = restaurantId (getClosestRestaurant rs c)
-    }
+validateOrderPayloadItems :: (OrderOption.Service m) =>
+    NonEmpty IffyOrderOptionId ->
+    m (Either PlaceOrderError (NonEmpty OrderOptionId))
+validateOrderPayloadItems items = do
+    checks <- OrderOption.checkExistence items
+    pure $ sequence $ validatePair <$> NEL.zip checks items
+        where
+    validatePair (ooid', iffyOoid) = maybe (Left $ UnknownOrderOption iffyOoid) (Right) ooid'
+
+mkOrder :: UUID -> [(Address, Coordinates)] -> NonEmpty Restaurant -> NonEmpty OrderOptionId -> Either PlaceOrderError Order
+mkOrder uuid locations' restaurants ooids = case nonEmpty locations' of
+    Nothing -> Left AddressNotFound
+    Just locations -> if NEL.length addresses > 1
+        then Left $ AmbiguousAddress addresses
+        else Right $ Order
+            { orderId = OrderId uuid
+            , orderPayload = OrderPayload
+                { orderPayloadItems = ooids
+                , orderPayloadAddress = NEL.head addresses
+                }
+            , orderRestaurantId = restaurantId closestRestaurant
+            }
+            where
+        (addresses, coordinates) = NEL.unzip locations
+        closestRestaurant = getClosestRestaurant restaurants $ NEL.head coordinates
+
 
 getClosestRestaurant :: NonEmpty Restaurant -> Coordinates -> Restaurant
 getClosestRestaurant restaurants coordinates = fst closest where

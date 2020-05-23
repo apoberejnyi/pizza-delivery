@@ -8,6 +8,7 @@ module Feature.Order.Gateway.Dto where
 import Base.HTTP
 import Base.Types.Address
 import Data.Aeson
+import Data.List.NonEmpty
 import Data.Text
 import Data.UUID
 import Feature.Order.Types
@@ -20,16 +21,16 @@ instance FromJSON OrderDto
 instance ToJSON OrderDto
 data OrderDto = OrderDto
     { id           :: UUID
-    , items        :: [UUID]
+    , items        :: NonEmpty UUID
     , address      :: Text
     , restaurantId :: UUID
     }
     deriving (Show, Generic)
 
-instance FromJSON OrderPayloadDto
-instance ToJSON OrderPayloadDto
-data OrderPayloadDto = OrderPayloadDto
-    { items   :: [UUID]
+instance FromJSON IffyOrderPayloadDto
+instance ToJSON IffyOrderPayloadDto
+data IffyOrderPayloadDto = IffyOrderPayloadDto
+    { items   :: NonEmpty UUID
     , address :: Text
     }
     deriving (Show, Generic)
@@ -44,9 +45,9 @@ instance ToDTO OrderDto Order where
             , restaurantId = unRestaurantId orderRestaurantId
             }
 
-instance FromDTO OrderPayloadDto OrderPayload where
-    fromDTO OrderPayloadDto{..} = OrderPayload
-        { orderPayloadItems = OrderOptionId <$> items
-        , orderPayloadAddress = Address address
+instance FromDTO IffyOrderPayloadDto IffyOrderPayload where
+    fromDTO IffyOrderPayloadDto{..} = IffyOrderPayload
+        { orderPayloadItems = IffyOrderOptionId <$> items
+        , orderPayloadAddress = IffyAddress address
         }
 

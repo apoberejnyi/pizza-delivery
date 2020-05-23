@@ -6,6 +6,7 @@ module Feature.Order.Persistence.Repository where
 import Base.PG
 import Base.Types.Address
 import Control.Monad.IO.Class
+import Data.List.NonEmpty
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.FromRow
 import Database.PostgreSQL.Simple.ToRow
@@ -33,7 +34,7 @@ instance ToRow OrderEntity where
         let OrderPayload{..} = orderPayload in
         toRow
             ( unOrderId orderId
-            , PGArray $ unOrderOptionId <$> orderPayloadItems
+            , (PGArray . toList) $ unOrderOptionId <$> orderPayloadItems
             , unAddress orderPayloadAddress
             , unRestaurantId orderRestaurantId
             )
@@ -44,7 +45,7 @@ instance FromRow OrderEntity where
         pure $ OrderEntity $ Order
             { orderId = OrderId oid
             , orderPayload = OrderPayload
-                { orderPayloadItems = OrderOptionId <$> items
+                { orderPayloadItems = fromList $ OrderOptionId <$> items
                 , orderPayloadAddress = Address address
                 }
             , orderRestaurantId = RestaurantId restaurantId

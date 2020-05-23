@@ -46,6 +46,9 @@ instance UUIDGen AppT where
 
 instance Concurrent AppT where
     concurrently a b = liftIO $ Async.concurrently (unAppT a) (unAppT b)
+    concurrently3 a b c = do
+        (a', (b', c')) <- concurrently a (concurrently b c)
+        pure (a', b', c')
 
 instance MonadHttp AppT where
     handleHttpException = throw
@@ -66,12 +69,14 @@ instance Feature.Order.Persistence.Contract.Repo AppT where
 instance Feature.OrderOption.Contract.Service AppT where
     getAll = Feature.OrderOption.Service.getAllOrderOptions
     getById = Feature.OrderOption.Service.getOrderOptionById
+    checkExistence = Feature.OrderOption.Service.checkOrderOptionsExistence
     register = Feature.OrderOption.Service.registerOrderOption
     delete = Feature.OrderOption.Service.deleteOrderOption
 
 instance Feature.OrderOption.Persistence.Contract.Repo AppT where
     queryAll = Feature.OrderOption.Persistence.Repository.queryAllOrderOptions
     queryById = Feature.OrderOption.Persistence.Repository.queryOrderOptionById
+    filterExisting = Feature.OrderOption.Persistence.Repository.filterExistingOrderOptionIds
     insert = Feature.OrderOption.Persistence.Repository.insertOrderOption
     delete = Feature.OrderOption.Persistence.Repository.deleteOrderOption
 

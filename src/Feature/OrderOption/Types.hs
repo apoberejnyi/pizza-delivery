@@ -11,7 +11,8 @@ import GHC.Generics (Generic)
 data RegisterOptionError = NameAlreadyInUse
 data DeleteOrderOptionError = OrderOptionNotFound OrderOptionId
 
-newtype OrderOptionId = OrderOptionId { unOrderOptionId :: UUID }
+newtype IffyOrderOptionId = IffyOrderOptionId { unIffyOrderOptionId :: UUID } deriving (Eq, Show)
+newtype OrderOptionId = OrderOptionId { unOrderOptionId :: UUID } deriving (Eq, Show)
 
 data OrderOption = OrderOption
     { orderOptionId      :: OrderOptionId
@@ -22,6 +23,9 @@ data OrderOptionPayload = Pizza
     { pizzaName  :: Text
     , pizzaSizes :: NonEmpty PizzaSize
     }
+
+data OrderOptionExistence = Exist
+    | DoesNotExist
 
 newtype PizzaCost = PizzaCost Double deriving (Eq, Generic)
 instance ToJSON PizzaCost
