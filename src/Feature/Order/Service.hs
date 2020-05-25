@@ -15,17 +15,15 @@ import Control.Monad
 import Data.Either.Combinators
 import Data.List.NonEmpty as NEL
 import Data.UUID
-import qualified Feature.Order.Persistence.Contract as Order
+import qualified Feature.Order.Persistence.Types as Order
 import Feature.Order.Types
-import qualified Feature.OrderOption.Contract as OrderOption
-import Feature.OrderOption.Types
-import qualified Feature.Restaurant.Contract as Restaurant
-import Feature.Restaurant.Types
+import Feature.OrderOption.Types as OrderOption
+import Feature.Restaurant.Types as Restaurant
 
-getAllOrders :: (Order.Repo m) => m [Order]
+getAllOrders :: (Order.Repo m) => GetAllOrders m
 getAllOrders = Order.queryAll
 
-type PlaceOrder m =
+type PlaceOrderM m =
     ( UUIDGen m
     , Concurrent m
     , Restaurant.Service m
@@ -34,16 +32,16 @@ type PlaceOrder m =
     , Order.Repo m
     )
 
-placeOrder :: PlaceOrder m => IffyOrderPayload -> m (Either PlaceOrderError Order)
+placeOrder :: PlaceOrderM m => PlaceOrder m
 placeOrder IffyOrderPayload{..} = do
     uuid <- nextUUID
-    (rs, addresses, items') <- concurrently3
+    (restaurants', addresses, items) <- concurrently3
         Restaurant.getAll
         (resolveAddress orderPayloadAddress)
         (validateOrderPayloadItems orderPayloadItems)
 
-    let restaurants = maybeToRight NoRestaurantsAvailable (nonEmpty rs)
-    let order = join $ mkOrder uuid addresses <$> restaurants <*> items'
+    let restaurants = maybeToRight NoRestaurantsAvailable (nonEmpty restaurants')
+    let order = join $ mkOrder uuid addresses <$> restaurants <*> items
 
     mapM_ Order.insert order
     pure order

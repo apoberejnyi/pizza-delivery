@@ -11,7 +11,7 @@ import Data.Aeson hiding (json)
 import Data.List.NonEmpty
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
-import qualified Feature.Order.Contract as Order
+import qualified Feature.Order.Types as Order
 import Feature.Order.Gateway.Dto
 import Feature.Order.Types
 import Feature.OrderOption.Types
@@ -26,7 +26,7 @@ endpoints = do
 
     post "/api/orders" $ do
         (payload :: IffyOrderPayloadDto) <- parseBody
-        result <- lift $ Order.placeOrder (fromDTO payload)
+        result <- lift $ Order.place (fromDTO payload)
         case result of
             Right order -> do
                 status created201

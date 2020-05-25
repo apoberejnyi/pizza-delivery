@@ -1,6 +1,9 @@
 .env
 .stack-work/
+out
 *~
 pizza-delivery.cabal
 .vscode
+.idea
 client_session_key.aes
+/pizza-delivery.iml

@@ -7,11 +7,10 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
-import qualified Feature.Restaurant.Contract as Restaurant
 import Feature.Restaurant.Gateway.Dto
-import Feature.Restaurant.Types
+import Feature.Restaurant.Types as Restaurant
 import Network.HTTP.Types
-import Web.Scotty.Trans
+import Web.Scotty.Trans as S
 
 endpoints :: (MonadIO m, Restaurant.Service m) => ScottyT LT.Text m ()
 endpoints = do
@@ -39,7 +38,7 @@ endpoints = do
                 status conflict409
                 json ("Restaurant name is already in use" :: T.Text)
 
-    delete "/api/restaurants/:id" $ do
+    S.delete "/api/restaurants/:id" $ do
         rid <- uuidParam "id"
         result <- lift $ Restaurant.delete (RestaurantId rid)
         case result of

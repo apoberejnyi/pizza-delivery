@@ -8,6 +8,13 @@ import Data.Text (Text)
 import Data.UUID (UUID)
 import GHC.Generics (Generic)
 
+class Monad m => Service m where
+    getAll :: m [OrderOption]
+    getById :: OrderOptionId -> m (Maybe OrderOption)
+    checkExistence :: NonEmpty IffyOrderOptionId -> m (NonEmpty (Maybe OrderOptionId))
+    register :: OrderOptionPayload -> m (Either RegisterOptionError OrderOptionId)
+    delete :: OrderOptionId -> m (Either DeleteOrderOptionError ())
+
 data RegisterOptionError = NameAlreadyInUse
 data DeleteOrderOptionError = OrderOptionNotFound OrderOptionId
 

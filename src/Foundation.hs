@@ -1,5 +1,6 @@
-{-# LANGUAGE DeriveFunctor              #-}
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 module Foundation where
 
 import Base.Concurrency
@@ -11,21 +12,21 @@ import qualified Control.Concurrent.Async as Async
 import Control.Exception
 import Control.Monad.IO.Class
 import qualified Data.UUID.V4 as UUID
-import qualified Feature.Order.Contract
 import qualified Feature.Order.Gateway.Endpoints
-import qualified Feature.Order.Persistence.Contract
 import qualified Feature.Order.Persistence.Repository
+import qualified Feature.Order.Persistence.Types
 import qualified Feature.Order.Service
-import qualified Feature.OrderOption.Contract
+import qualified Feature.Order.Types
 import qualified Feature.OrderOption.Gateway.Endpoints
-import qualified Feature.OrderOption.Persistence.Contract
 import qualified Feature.OrderOption.Persistence.Repository
+import qualified Feature.OrderOption.Persistence.Types
 import qualified Feature.OrderOption.Service
-import qualified Feature.Restaurant.Contract
+import qualified Feature.OrderOption.Types
 import qualified Feature.Restaurant.Gateway.Endpoints
-import qualified Feature.Restaurant.Persistence.Contract
 import qualified Feature.Restaurant.Persistence.Repository
+import qualified Feature.Restaurant.Persistence.Types
 import qualified Feature.Restaurant.Service
+import qualified Feature.Restaurant.Types
 import Network.HTTP.Req
 import System.Envy
 import Web.Scotty.Trans
@@ -58,35 +59,35 @@ instance AddressResolver AppT where
         envVars <- either error id <$> liftIO decodeEnv
         OpenCage.resolveAddress envVars address
 
-instance Feature.Order.Contract.Service AppT where
+instance Feature.Order.Types.Service AppT where
     getAll = Feature.Order.Service.getAllOrders
-    placeOrder = Feature.Order.Service.placeOrder
+    place = Feature.Order.Service.placeOrder
 
-instance Feature.Order.Persistence.Contract.Repo AppT where
+instance Feature.Order.Persistence.Types.Repo AppT where
     queryAll = Feature.Order.Persistence.Repository.queryAllOrders
     insert = Feature.Order.Persistence.Repository.insertOrder
 
-instance Feature.OrderOption.Contract.Service AppT where
+instance Feature.OrderOption.Types.Service AppT where
     getAll = Feature.OrderOption.Service.getAllOrderOptions
     getById = Feature.OrderOption.Service.getOrderOptionById
     checkExistence = Feature.OrderOption.Service.checkOrderOptionsExistence
     register = Feature.OrderOption.Service.registerOrderOption
     delete = Feature.OrderOption.Service.deleteOrderOption
 
-instance Feature.OrderOption.Persistence.Contract.Repo AppT where
+instance Feature.OrderOption.Persistence.Types.Repo AppT where
     queryAll = Feature.OrderOption.Persistence.Repository.queryAllOrderOptions
     queryById = Feature.OrderOption.Persistence.Repository.queryOrderOptionById
     filterExisting = Feature.OrderOption.Persistence.Repository.filterExistingOrderOptionIds
     insert = Feature.OrderOption.Persistence.Repository.insertOrderOption
     delete = Feature.OrderOption.Persistence.Repository.deleteOrderOption
 
-instance Feature.Restaurant.Contract.Service AppT where
+instance Feature.Restaurant.Types.Service AppT where
     getAll = Feature.Restaurant.Service.getAllRestaurants
     getById = Feature.Restaurant.Service.getRestaurantById
     register = Feature.Restaurant.Service.registerRestaurant
     delete = Feature.Restaurant.Service.deleteRestaurant
 
-instance Feature.Restaurant.Persistence.Contract.Repo AppT where
+instance Feature.Restaurant.Persistence.Types.Repo AppT where
     queryAll = Feature.Restaurant.Persistence.Repository.queryAllRestaurants
     queryById = Feature.Restaurant.Persistence.Repository.queryRestaurantById
     insert = Feature.Restaurant.Persistence.Repository.insertRestaurant

@@ -8,11 +8,11 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
-import qualified Feature.OrderOption.Contract as OrderOption
+import qualified Feature.OrderOption.Types as OrderOption
 import Feature.OrderOption.Gateway.Dto
 import Feature.OrderOption.Types
 import Network.HTTP.Types
-import Web.Scotty.Trans
+import Web.Scotty.Trans as S
 
 endpoints :: (MonadIO m, OrderOption.Service m) => ScottyT LT.Text m ()
 endpoints = do
@@ -40,7 +40,7 @@ endpoints = do
                 status conflict409
                 json ("Order option name is already in use" :: T.Text)
 
-    delete "/api/orderOptions/:id" $ do
+    S.delete "/api/orderOptions/:id" $ do
         ooid <- uuidParam "id"
         result <- lift $ OrderOption.delete (OrderOptionId ooid)
         case result of

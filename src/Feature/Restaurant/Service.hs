@@ -1,16 +1,16 @@
 module Feature.Restaurant.Service where
 
 import Base.Types.UUID
-import Feature.Restaurant.Persistence.Contract
-import Feature.Restaurant.Types
+import Feature.Restaurant.Persistence.Types as Persistence
+import Feature.Restaurant.Types as Restaurant
 
-getAllRestaurants :: (Repo m) => m [Restaurant]
+getAllRestaurants :: (Repo m) => GetAllRestaurants m
 getAllRestaurants = queryAll
 
-getRestaurantById :: (Repo m) => RestaurantId -> m (Maybe Restaurant)
+getRestaurantById :: (Repo m) => GetRestaurantById m
 getRestaurantById = queryById
 
-registerRestaurant :: (Repo m, UUIDGen m) => RestaurantForCreate -> m (Either CreateRestaurantError RestaurantId)
+registerRestaurant :: (Repo m, UUIDGen m) => RegisterRestaurant m
 registerRestaurant (RestaurantForCreate name coordinates) = do
     uuid <- nextUUID
     let rid = RestaurantId uuid
@@ -22,5 +22,5 @@ registerRestaurant (RestaurantForCreate name coordinates) = do
     inserted <- insert restaurant
     pure $ rid <$ inserted
 
-deleteRestaurant :: (Repo m) => RestaurantId -> m (Either DeleteRestaurantError ())
-deleteRestaurant = delete
+deleteRestaurant :: (Repo m) => Restaurant.DeleteRestaurant m
+deleteRestaurant = Persistence.delete

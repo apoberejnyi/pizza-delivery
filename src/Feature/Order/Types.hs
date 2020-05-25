@@ -8,6 +8,13 @@ import Data.UUID
 import Feature.OrderOption.Types
 import Feature.Restaurant.Types
 
+type GetAllOrders m = m [Order]
+type PlaceOrder m = IffyOrderPayload -> m (Either PlaceOrderError Order)
+
+class Monad m => Service m where
+    getAll :: GetAllOrders m
+    place :: PlaceOrder m
+
 data IffyOrderPayload = IffyOrderPayload
     { orderPayloadItems   :: NonEmpty IffyOrderOptionId
     , orderPayloadAddress :: IffyAddress

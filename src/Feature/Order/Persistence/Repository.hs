@@ -12,15 +12,16 @@ import Database.PostgreSQL.Simple.FromRow
 import Database.PostgreSQL.Simple.ToRow
 import Database.PostgreSQL.Simple.Types
 import Feature.Order.Types
+import Feature.Order.Persistence.Types
 import Feature.OrderOption.Types
 import Feature.Restaurant.Types
 
-queryAllOrders :: MonadIO m => m [Order]
+queryAllOrders :: MonadIO m => QueryAllOrders m
 queryAllOrders = do
     results <- withConn $ \conn -> query_ conn "SELECT id, items, address, restaurantId FROM orders"
     pure $ fmap unOrderEntity results
 
-insertOrder :: MonadIO m => Order -> m ()
+insertOrder :: MonadIO m => InsertOrder m
 insertOrder order = do
     _ <- withConn $ \conn -> execute conn insertQuery (OrderEntity order)
     pure ()

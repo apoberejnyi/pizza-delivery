@@ -1,4 +1,4 @@
-module Feature.OrderOption.Persistence.Contract where
+module Feature.OrderOption.Persistence.Types where
 
 import Data.List.NonEmpty
 import Feature.OrderOption.Types

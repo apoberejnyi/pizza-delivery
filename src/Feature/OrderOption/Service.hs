@@ -10,31 +10,31 @@ module Feature.OrderOption.Service
 
 import Base.Types.UUID
 import Data.List.NonEmpty
-import Feature.OrderOption.Persistence.Contract as OrderOption
+import qualified Feature.OrderOption.Persistence.Types as Persistence
 import Feature.OrderOption.Types
 
-getAllOrderOptions :: (Repo m) => m [OrderOption]
-getAllOrderOptions = queryAll
+getAllOrderOptions :: (Persistence.Repo m) => m [OrderOption]
+getAllOrderOptions = Persistence.queryAll
 
-getOrderOptionById :: (Repo m) => OrderOptionId -> m (Maybe OrderOption)
-getOrderOptionById = queryById
+getOrderOptionById :: (Persistence.Repo m) => OrderOptionId -> m (Maybe OrderOption)
+getOrderOptionById = Persistence.queryById
 
-checkOrderOptionsExistence :: (Repo m) => NonEmpty IffyOrderOptionId -> m (NonEmpty (Maybe OrderOptionId))
+checkOrderOptionsExistence :: (Persistence.Repo m) => NonEmpty IffyOrderOptionId -> m (NonEmpty (Maybe OrderOptionId))
 checkOrderOptionsExistence ids = do
-    filtered <- filterExisting ids
-    pure $ checkExistence filtered <$> ids
+    filtered <- Persistence.filterExisting ids
+    pure $ compareWithExisting filtered <$> ids
         where
-    checkExistence ooids (IffyOrderOptionId val)
+    compareWithExisting ooids (IffyOrderOptionId val)
         | val `elem` fmap unOrderOptionId ooids = Just $ OrderOptionId val
         | otherwise = Nothing
 
-registerOrderOption :: (Repo m, UUIDGen m) =>
+registerOrderOption :: (Persistence.Repo m, UUIDGen m) =>
     OrderOptionPayload ->  m (Either RegisterOptionError OrderOptionId)
 registerOrderOption payload = do
     optionId <- OrderOptionId <$> nextUUID
-    result <- OrderOption.insert (OrderOption optionId payload)
+    result <- Persistence.insert (OrderOption optionId payload)
     pure (optionId <$ result)
 
-deleteOrderOption :: (Repo m) => OrderOptionId -> m (Either DeleteOrderOptionError ())
-deleteOrderOption = delete
+deleteOrderOption :: (Persistence.Repo m) => OrderOptionId -> m (Either DeleteOrderOptionError ())
+deleteOrderOption = Persistence.delete
 
