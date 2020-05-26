@@ -16,7 +16,7 @@ class Monad m => Service m where
     delete :: OrderOptionId -> m (Either DeleteOrderOptionError ())
 
 data RegisterOptionError = NameAlreadyInUse
-data DeleteOrderOptionError = OrderOptionNotFound OrderOptionId
+newtype DeleteOrderOptionError = OrderOptionNotFound OrderOptionId
 
 newtype IffyOrderOptionId = IffyOrderOptionId { unIffyOrderOptionId :: UUID } deriving (Eq, Show)
 newtype OrderOptionId = OrderOptionId { unOrderOptionId :: UUID } deriving (Eq, Show)

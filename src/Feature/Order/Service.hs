@@ -3,7 +3,9 @@
 
 module Feature.Order.Service
     ( getAllOrders
+    , getOrderById
     , placeOrder
+    , deleteOrder
     ) where
 
 import Base.Concurrency
@@ -22,6 +24,12 @@ import Feature.Restaurant.Types as Restaurant
 
 getAllOrders :: (Order.Repo m) => GetAllOrders m
 getAllOrders = Order.queryAll
+
+getOrderById :: (Order.Repo m) => GetOrderById m
+getOrderById = Order.queryById
+
+deleteOrder :: (Order.Repo m) => DeleteOrder m
+deleteOrder = Order.delete
 
 type PlaceOrderM m =
     ( UUIDGen m
@@ -52,8 +60,8 @@ validateOrderPayloadItems :: (OrderOption.Service m) =>
 validateOrderPayloadItems items = do
     checks <- OrderOption.checkExistence items
     pure $ sequence $ validatePair <$> NEL.zip checks items
-        where
-    validatePair (ooid', iffyOoid) = maybe (Left $ UnknownOrderOption iffyOoid) (Right) ooid'
+  where
+    validatePair (ooid', iffyOoid) = maybe (Left $ UnknownOrderOption iffyOoid) Right ooid'
 
 mkOrder :: UUID -> [(Address, Coordinates)] -> NonEmpty Restaurant -> NonEmpty OrderOptionId -> Either PlaceOrderError Order
 mkOrder uuid locations' restaurants ooids = case nonEmpty locations' of
@@ -62,6 +70,7 @@ mkOrder uuid locations' restaurants ooids = case nonEmpty locations' of
         then Left $ AmbiguousAddress addresses
         else Right $ Order
             { orderId = OrderId uuid
+            , orderStatus = Verification
             , orderPayload = OrderPayload
                 { orderPayloadItems = ooids
                 , orderPayloadAddress = NEL.head addresses

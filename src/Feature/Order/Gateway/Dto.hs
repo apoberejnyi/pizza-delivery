@@ -1,9 +1,12 @@
-{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE RecordWildCards #-}
 
-module Feature.Order.Gateway.Dto where
+module Feature.Order.Gateway.Dto
+    ( OrderDto
+    , IffyOrderPayloadDto,
+    ) where
 
 import Base.HTTP
 import Base.Types.Address
@@ -15,31 +18,31 @@ import Feature.Order.Types
 import Feature.OrderOption.Types
 import Feature.Restaurant.Types
 import GHC.Generics
-import Prelude hiding (id)
+import Prelude hiding ( id )
 
-instance FromJSON OrderDto
 instance ToJSON OrderDto
 data OrderDto = OrderDto
     { id           :: UUID
+    , status       :: OrderStatusJSON
     , items        :: NonEmpty UUID
     , address      :: Text
     , restaurantId :: UUID
     }
-    deriving (Show, Generic)
+    deriving (Generic)
 
 instance FromJSON IffyOrderPayloadDto
-instance ToJSON IffyOrderPayloadDto
 data IffyOrderPayloadDto = IffyOrderPayloadDto
     { items   :: NonEmpty UUID
     , address :: Text
     }
-    deriving (Show, Generic)
+    deriving (Generic)
 
 instance ToDTO OrderDto Order where
     toDTO Order{..} =
         let OrderPayload{..} = orderPayload in
         OrderDto
             { id = unOrderId orderId
+            , status = OrderStatusJSON orderStatus
             , items = unOrderOptionId <$> orderPayloadItems
             , address = unAddress orderPayloadAddress
             , restaurantId = unRestaurantId orderRestaurantId
@@ -51,3 +54,6 @@ instance FromDTO IffyOrderPayloadDto IffyOrderPayload where
         , orderPayloadAddress = IffyAddress address
         }
 
+newtype OrderStatusJSON = OrderStatusJSON { unOrderStatusJSON :: OrderStatus }
+instance ToJSON OrderStatusJSON where
+    toJSON = String . toLower . pack . show . unOrderStatusJSON

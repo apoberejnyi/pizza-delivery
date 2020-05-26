@@ -61,11 +61,15 @@ instance AddressResolver AppT where
 
 instance Feature.Order.Types.Service AppT where
     getAll = Feature.Order.Service.getAllOrders
+    getById = Feature.Order.Service.getOrderById
     place = Feature.Order.Service.placeOrder
+    delete = Feature.Order.Service.deleteOrder
 
 instance Feature.Order.Persistence.Types.Repo AppT where
     queryAll = Feature.Order.Persistence.Repository.queryAllOrders
+    queryById = Feature.Order.Persistence.Repository.queryOrderById
     insert = Feature.Order.Persistence.Repository.insertOrder
+    delete = Feature.Order.Persistence.Repository.deleteOrder
 
 instance Feature.OrderOption.Types.Service AppT where
     getAll = Feature.OrderOption.Service.getAllOrderOptions

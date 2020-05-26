@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Feature.Order.Gateway.Endpoints where
@@ -7,13 +7,13 @@ import Base.HTTP
 import Base.Types.Address
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
-import Data.Aeson hiding (json)
+import Data.Aeson hiding ( json )
 import Data.List.NonEmpty
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
-import qualified Feature.Order.Types as Order
 import Feature.Order.Gateway.Dto
 import Feature.Order.Types
+import qualified Feature.Order.Types as Order
 import Feature.OrderOption.Types
 import Network.HTTP.Types
 import Web.Scotty.Trans

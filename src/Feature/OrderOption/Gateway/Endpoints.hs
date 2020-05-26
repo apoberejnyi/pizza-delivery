@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Feature.OrderOption.Gateway.Endpoints where
@@ -8,9 +8,9 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
-import qualified Feature.OrderOption.Types as OrderOption
 import Feature.OrderOption.Gateway.Dto
 import Feature.OrderOption.Types
+import qualified Feature.OrderOption.Types as OrderOption
 import Network.HTTP.Types
 import Web.Scotty.Trans as S
 

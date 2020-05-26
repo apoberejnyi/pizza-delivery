@@ -1,5 +1,6 @@
 CREATE TABLE orders (
     id uuid NOT NULL,
+    status varchar(50) NOT NULL,
     items uuid [] NOT NULL,
     address text NOT NULL,
     restaurantId uuid NOT NULL,
