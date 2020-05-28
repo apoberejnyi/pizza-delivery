@@ -16,13 +16,22 @@ import Feature.Order.Types
 import qualified Feature.Order.Types as Order
 import Feature.OrderOption.Types
 import Network.HTTP.Types
-import Web.Scotty.Trans
+import Web.Scotty.Trans as S
 
 endpoints :: (MonadIO m, Order.Service m) => ScottyT LT.Text m ()
 endpoints = do
     get "/api/orders" $ do
         result <- lift Order.getAll
         json (fmap toDTO result :: [OrderDto])
+
+    get "/api/order/:id" $ do
+        oid <- uuidParam "orderId"
+        result <- lift $ Order.getById (OrderId oid)
+        case result of
+            Nothing -> do
+                status notFound404
+                json $ mconcat ["Order ", show oid, " not found"]
+            Just order -> json (toDTO order :: OrderDto)
 
     post "/api/orders" $ do
         (payload :: IffyOrderPayloadDto) <- parseBody
@@ -46,3 +55,12 @@ endpoints = do
             Left (UnknownOrderOption ooid) -> do
                 status badRequest400
                 json $ mconcat ["Unknown order option ", show $ unIffyOrderOptionId ooid]
+
+    S.delete "/api/orders/:id" $ do
+        oid <- uuidParam "orderId"
+        result <- lift $ Order.delete (OrderId oid)
+        case result of
+            Left (OrderNotFound _) -> do
+                status notFound404
+                json $ mconcat ["Order ", show oid, " not found"]
+            Right _ -> finish
