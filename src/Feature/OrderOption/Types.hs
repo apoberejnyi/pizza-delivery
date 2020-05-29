@@ -4,9 +4,9 @@ module Feature.OrderOption.Types where
 
 import Data.Aeson
 import Data.List.NonEmpty
-import Data.Text (Text)
-import Data.UUID (UUID)
-import GHC.Generics (Generic)
+import Data.Text ( Text )
+import Data.UUID ( UUID )
+import GHC.Generics ( Generic )
 
 class Monad m => Service m where
     getAll :: m [OrderOption]
@@ -16,6 +16,7 @@ class Monad m => Service m where
     delete :: OrderOptionId -> m (Either DeleteOrderOptionError ())
 
 data RegisterOptionError = NameAlreadyInUse
+    deriving (Eq, Show)
 newtype DeleteOrderOptionError = OrderOptionNotFound OrderOptionId
 
 newtype IffyOrderOptionId = IffyOrderOptionId { unIffyOrderOptionId :: UUID } deriving (Eq, Show)

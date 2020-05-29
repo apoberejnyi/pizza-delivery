@@ -1,0 +1,8 @@
+cradle:
+    stack:
+      - path: "./app/"
+        component: "pizza-delivery:exe:pizza-delivery-exe"
+      - path: "./src/"
+        component: "pizza-delivery:lib"
+      - path: "./test/"
+        component: "pizza-delivery:test:pizza-delivery-test"
