@@ -26,11 +26,13 @@ data OrderOption = OrderOption
     { orderOptionId      :: OrderOptionId
     , orderOptionPayload :: OrderOptionPayload
     }
+    deriving (Eq)
 
 data OrderOptionPayload = Pizza
     { pizzaName  :: Text
     , pizzaSizes :: NonEmpty PizzaSize
     }
+    deriving (Eq)
 
 data OrderOptionExistence = Exist
     | DoesNotExist
@@ -44,3 +46,4 @@ instance ToJSON PizzaDiameter
 instance FromJSON PizzaDiameter
 
 data PizzaSize = PizzaSize PizzaDiameter PizzaCost
+    deriving (Eq)
