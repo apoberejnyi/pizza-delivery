@@ -1,7 +1,6 @@
 module Feature.Restaurant.Types where
 
-import Base.Types.Coordinates (Coordinates)
-import Control.Monad.IO.Class
+import Base.Types.Coordinates ( Coordinates )
 import qualified Data.Text as T
 import Data.UUID
 
@@ -10,19 +9,20 @@ type GetRestaurantById m = RestaurantId -> m (Maybe Restaurant)
 type RegisterRestaurant m = RestaurantForCreate -> m (Either CreateRestaurantError RestaurantId)
 type DeleteRestaurant m = RestaurantId -> m (Either DeleteRestaurantError ())
 
-class (MonadIO m) => Service m where
+class (Monad m) => Service m where
     getAll :: GetAllRestaurants m
     getById :: GetRestaurantById m
     register :: RegisterRestaurant m
     delete :: DeleteRestaurant m
 
-newtype RestaurantId = RestaurantId { unRestaurantId :: UUID }
+newtype RestaurantId = RestaurantId { unRestaurantId :: UUID } deriving (Eq, Show)
 
 data Restaurant = Restaurant
     { restaurantId          :: RestaurantId
     , restaurantName        :: T.Text
     , restaurantCoordinates :: Coordinates
     }
+    deriving (Eq)
 
 data RestaurantForCreate = RestaurantForCreate T.Text Coordinates
 data CreateRestaurantError = RestaurantNameAlreadyInUse

@@ -50,8 +50,8 @@ instance ToDTO OrderDto Order where
 
 instance FromDTO IffyOrderPayloadDto IffyOrderPayload where
     fromDTO IffyOrderPayloadDto{..} = IffyOrderPayload
-        { orderPayloadItems = IffyOrderOptionId <$> items
-        , orderPayloadAddress = IffyAddress address
+        { iffyOrderPayloadItems = IffyOrderOptionId <$> items
+        , iffyOrderPayloadAddress = IffyAddress address
         }
 
 newtype OrderStatusJSON = OrderStatusJSON { unOrderStatusJSON :: OrderStatus }

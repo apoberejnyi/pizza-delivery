@@ -1,5 +1,3 @@
-{-# LANGUAGE DuplicateRecordFields #-}
-
 module Feature.Order.Types where
 
 import Base.Types.Address
@@ -20,8 +18,8 @@ class Monad m => Service m where
     delete :: DeleteOrder m
 
 data IffyOrderPayload = IffyOrderPayload
-    { orderPayloadItems   :: NonEmpty IffyOrderOptionId
-    , orderPayloadAddress :: IffyAddress
+    { iffyOrderPayloadItems   :: NonEmpty IffyOrderOptionId
+    , iffyOrderPayloadAddress :: IffyAddress
     }
 
 data OrderPayload = OrderPayload
@@ -47,5 +45,6 @@ data PlaceOrderError = NoRestaurantsAvailable
     | AddressNotFound
     | AmbiguousAddress (NonEmpty Address)
     | UnknownOrderOption IffyOrderOptionId
+    deriving (Eq, Show)
 
 newtype DeleteOrderError = OrderNotFound OrderId

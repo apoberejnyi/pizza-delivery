@@ -45,8 +45,8 @@ placeOrder IffyOrderPayload{..} = do
     uuid <- nextUUID
     (restaurants', addresses, items) <- concurrently3
         Restaurant.getAll
-        (resolveAddress orderPayloadAddress)
-        (validateOrderPayloadItems orderPayloadItems)
+        (resolveAddress iffyOrderPayloadAddress)
+        (validateOrderPayloadItems iffyOrderPayloadItems)
 
     let restaurants = maybeToRight NoRestaurantsAvailable (nonEmpty restaurants')
     let order = join $ mkOrder uuid addresses <$> restaurants <*> items
@@ -63,7 +63,7 @@ validateOrderPayloadItems items = do
   where
     validatePair (ooid', iffyOoid) = maybe (Left $ UnknownOrderOption iffyOoid) Right ooid'
 
-mkOrder :: UUID -> [(Address, Coordinates)] -> NonEmpty Restaurant -> NonEmpty OrderOptionId -> Either PlaceOrderError Order
+mkOrder :: UUID -> [Location] -> NonEmpty Restaurant -> NonEmpty OrderOptionId -> Either PlaceOrderError Order
 mkOrder uuid locations' restaurants ooids = case nonEmpty locations' of
     Nothing -> Left AddressNotFound
     Just locations -> if NEL.length addresses > 1
