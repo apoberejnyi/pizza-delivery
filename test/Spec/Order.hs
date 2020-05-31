@@ -4,11 +4,10 @@
 
 module Spec.Order where
 
-import Base.Concurrency
-import Base.Types.Address
-import Base.Types.Coordinates
-import Base.Types.UUID
+import Control.Concurrency
 import Control.Monad.Trans.State
+import Data.Address
+import Data.Coordinates
 import Data.List.NonEmpty
 import Data.UUID
 import Feature.Order.Persistence.Types as Order.Persistence
@@ -16,6 +15,7 @@ import Feature.Order.Service
 import Feature.Order.Types as Order
 import Feature.OrderOption.Types as OrderOption
 import Feature.Restaurant.Types as Restaurant
+import Persistence.UUID
 import Test.Hspec
 import Test.State
 import Test.Util

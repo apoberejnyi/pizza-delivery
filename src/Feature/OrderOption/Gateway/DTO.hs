@@ -1,18 +1,18 @@
-{-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE RecordWildCards #-}
 
-module Feature.OrderOption.Gateway.Dto where
+module Feature.OrderOption.Gateway.DTO where
 
-import Base.HTTP
 import Data.Aeson
 import Data.List.NonEmpty
 import Data.Text
 import Data.UUID
 import Feature.OrderOption.Types
+import Gateway.Util
 import GHC.Generics
-import Prelude hiding (id)
+import Prelude hiding ( id )
 
 instance FromJSON OrderOptionDto
 instance ToJSON OrderOptionDto

@@ -3,13 +3,13 @@
 
 module Feature.Restaurant.Gateway.Endpoints where
 
-import Base.HTTP
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
-import qualified Data.Text as T
 import qualified Data.Text.Lazy as LT
-import Feature.Restaurant.Gateway.Dto
+import Feature.Restaurant.Gateway.DTO
 import Feature.Restaurant.Types as Restaurant
+import Gateway.Error
+import Gateway.Util
 import Network.HTTP.Types
 import Web.Scotty.Trans as S
 
@@ -23,28 +23,20 @@ endpoints = do
         rid <- uuidParam "id"
         result <- lift $ Restaurant.getById (RestaurantId rid)
         case result of
-            Nothing -> do
-                status notFound404
-                json $ mconcat ["Restaurant ", show rid, " not found"]
-            Just restaurant -> json (toDTO restaurant :: RestaurantDto)
+            Left err@(RestaurantNotFound _)        -> httpError notFound404 err
+            Right restaurant -> json (toDTO restaurant :: RestaurantDto)
 
     post "/api/restaurants" $ do
         (payload :: RestaurantForCreateDto) <- parseBody
         result <- lift $ Restaurant.register (fromDTO payload)
         case result of
-            Right rid -> do
-                status status201
-                json $ unRestaurantId rid
-            Left RestaurantNameAlreadyInUse -> do
-                status conflict409
-                json ("Restaurant name is already in use" :: T.Text)
+            Left err@(RestaurantNameAlreadyInUse _) -> httpError conflict409 err
+            Right rid -> status status201 >> json (unRestaurantId rid)
 
     S.delete "/api/restaurants/:id" $ do
         rid <- uuidParam "id"
         result <- lift $ Restaurant.delete (RestaurantId rid)
         case result of
-            Left (RestaurantNotFound _) -> do
-                status notFound404
-                json $ mconcat ["Restaurant ", show rid, " not found"]
-            Right _ -> finish
+            Left err@(RestaurantDidNotExist _) -> httpError conflict409 err
+            Right _                            -> finish
 

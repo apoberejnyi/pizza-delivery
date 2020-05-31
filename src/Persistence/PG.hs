@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Base.PG
+module Persistence.PG
     ( withConn
     , checkPGEnv
     ) where

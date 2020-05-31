@@ -3,13 +3,12 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Feature.Order.Gateway.Dto
+module Feature.Order.Gateway.DTO
     ( OrderDto
     , IffyOrderPayloadDto,
     ) where
 
-import Base.HTTP
-import Base.Types.Address
+import Data.Address
 import Data.Aeson
 import Data.List.NonEmpty
 import Data.Text
@@ -17,6 +16,7 @@ import Data.UUID
 import Feature.Order.Types
 import Feature.OrderOption.Types
 import Feature.Restaurant.Types
+import Gateway.Util
 import GHC.Generics
 import Prelude hiding ( id )
 

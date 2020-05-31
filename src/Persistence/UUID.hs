@@ -1,4 +1,4 @@
-module Base.Types.UUID where
+module Persistence.UUID where
 
 import Data.UUID
 

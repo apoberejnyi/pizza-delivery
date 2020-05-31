@@ -3,9 +3,8 @@
 
 module Feature.Order.Persistence.Repository where
 
-import Base.PG
-import Base.Types.Address
 import Control.Monad.IO.Class
+import Data.Address
 import Data.List.NonEmpty
 import Data.Maybe
 import Database.PostgreSQL.Simple
@@ -16,6 +15,7 @@ import Feature.Order.Persistence.Types
 import Feature.Order.Types hiding ( DeleteOrder )
 import Feature.OrderOption.Types
 import Feature.Restaurant.Types
+import Persistence.PG
 
 queryAllOrders :: MonadIO m => QueryAllOrders m
 queryAllOrders = do
@@ -41,7 +41,7 @@ deleteOrder :: MonadIO m => DeleteOrder m
 deleteOrder oid'@(OrderId oid) = do
     updateCount <- withConn $ \conn -> execute conn "DELETE FROM orders WHERE id=?" (Only oid)
     let result = if updateCount == 0
-        then Left $ OrderNotFound oid'
+        then Left $ OrderDidNotExist oid'
         else Right ()
     pure result
 

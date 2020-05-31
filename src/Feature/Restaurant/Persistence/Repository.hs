@@ -1,4 +1,6 @@
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Feature.Restaurant.Persistence.Repository
     ( queryAllRestaurants
@@ -7,16 +9,16 @@ module Feature.Restaurant.Persistence.Repository
     , deleteRestaurant
     ) where
 
-import Base.PG
-import Base.Types.Coordinates
 import Control.Exception
 import Control.Monad.IO.Class
+import Data.Coordinates
 import Data.Maybe
 import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.FromRow
 import Database.PostgreSQL.Simple.ToRow
 import Feature.Restaurant.Persistence.Types as Persistence
 import Feature.Restaurant.Types
+import Persistence.PG
 
 queryAllRestaurants :: MonadIO m => QueryAllRestaurants m
 queryAllRestaurants = do
@@ -30,20 +32,20 @@ queryRestaurantById (RestaurantId rid) = do
     pure $ unRestaurantEntity <$> listToMaybe result
 
 insertRestaurant :: MonadIO m => InsertRestaurant m
-insertRestaurant restaurant = do
+insertRestaurant restaurant@Restaurant{..} = do
     let result = withConn $ \conn -> execute conn insertQuery (RestaurantEntity restaurant)
     liftIO $ catch (Right () <$ result) catchSqlException
       where
     insertQuery = "INSERT INTO restaurants (id, name, lat, lon) VALUES (?, ?, ?, ?)"
     catchSqlException sqlError
-        | sqlState sqlError == "23505" = pure $ Left RestaurantNameAlreadyInUse
+        | sqlState sqlError == "23505" = (pure . Left . RestaurantNameAlreadyInUse) restaurantName
         | otherwise = throw sqlError
 
 deleteRestaurant :: MonadIO m => Persistence.DeleteRestaurant m
 deleteRestaurant rid'@(RestaurantId rid) = do
     updateCount <- withConn $ \conn -> execute conn "DELETE FROM restaurants WHERE id=?" (Only rid)
     let result = if updateCount == 0
-        then Left $ RestaurantNotFound rid'
+        then Left $ RestaurantDidNotExist rid'
         else Right ()
     pure result
 

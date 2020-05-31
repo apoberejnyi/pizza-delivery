@@ -1,6 +1,6 @@
-module Base.Types.Address where
+module Data.Address where
 
-import Base.Types.Coordinates
+import Data.Coordinates
 import Data.Text ( Text )
 
 newtype IffyAddress = IffyAddress { unIffyAddress :: Text }

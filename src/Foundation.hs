@@ -3,14 +3,12 @@
 
 module Foundation where
 
-import Base.Concurrency
-import Base.HTTP
-import Base.Types.Address
-import Base.Types.UUID
 import qualified Client.OpenCage as OpenCage
+import Control.Concurrency
 import qualified Control.Concurrent.Async as Async
 import Control.Exception
 import Control.Monad.IO.Class
+import Data.Address
 import qualified Data.UUID.V4 as UUID
 import qualified Feature.Order.Gateway.Endpoints
 import qualified Feature.Order.Persistence.Repository
@@ -27,7 +25,9 @@ import qualified Feature.Restaurant.Persistence.Repository
 import qualified Feature.Restaurant.Persistence.Types
 import qualified Feature.Restaurant.Service
 import qualified Feature.Restaurant.Types
+import Gateway.Util
 import Network.HTTP.Req
+import Persistence.UUID
 import System.Envy
 import Web.Scotty.Trans
 

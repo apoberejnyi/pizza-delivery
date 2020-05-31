@@ -1,14 +1,14 @@
-module Base.Types.Distance
+module Data.Distance
   ( Distance
   , getDistance
   )
 where
 
-import Base.Types.Coordinates (Coordinates (Coordinates))
+import Data.Coordinates ( Coordinates (Coordinates) )
 
 type Distance = Double
 
--- https://stackoverflow.com/questions/365826/calculate-distance-between-2-gps-coordinates
+-- https://stackoverflow.com/questions/365826/calculate-distance-between-2-gps3-coordinates
 getDistance :: Coordinates -> Coordinates -> Distance
 getDistance (Coordinates lat1 lon1) (Coordinates lat2 lon2) = earthRadiusKm * c
  where

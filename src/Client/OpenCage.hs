@@ -1,15 +1,15 @@
-{-# LANGUAGE DeriveGeneric     #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Client.OpenCage
     ( Client.OpenCage.resolveAddress
     , OpenCageApiEnv(..)
     ) where
 
-import Base.Types.Address
-import Base.Types.Coordinates
+import Data.Address
 import Data.Aeson
+import Data.Coordinates
 import Data.Text
 import GHC.Generics
 import Network.HTTP.Req

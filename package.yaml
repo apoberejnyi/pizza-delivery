@@ -35,6 +35,7 @@ dependencies:
   - either
   - envy
   - load-env
+  - aeson-extra
 
 library:
   source-dirs: src

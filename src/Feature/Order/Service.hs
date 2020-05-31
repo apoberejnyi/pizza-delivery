@@ -8,12 +8,11 @@ module Feature.Order.Service
     , deleteOrder
     ) where
 
-import Base.Concurrency
-import Base.Types.Address
-import Base.Types.Coordinates
-import Base.Types.Distance
-import Base.Types.UUID
+import Control.Concurrency
 import Control.Monad
+import Data.Address
+import Data.Coordinates
+import Data.Distance
 import Data.Either.Combinators
 import Data.List.NonEmpty as NEL
 import Data.UUID
@@ -21,12 +20,13 @@ import qualified Feature.Order.Persistence.Types as Order
 import Feature.Order.Types
 import Feature.OrderOption.Types as OrderOption
 import Feature.Restaurant.Types as Restaurant
+import Persistence.UUID
 
 getAllOrders :: (Order.Repo m) => GetAllOrders m
 getAllOrders = Order.queryAll
 
 getOrderById :: (Order.Repo m) => GetOrderById m
-getOrderById = Order.queryById
+getOrderById oid = maybe (Left $ OrderNotFound oid) Right <$> Order.queryById oid
 
 deleteOrder :: (Order.Repo m) => DeleteOrder m
 deleteOrder = Order.delete

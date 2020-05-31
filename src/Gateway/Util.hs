@@ -1,7 +1,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE OverloadedStrings #-}
 
-module Base.HTTP where
+module Gateway.Util where
 
 import Control.Monad.IO.Class
 import Data.Aeson
@@ -12,6 +12,9 @@ import Data.UUID
 import Network.HTTP.Types
 import Network.Wai
 import Web.Scotty.Trans as ST
+
+-- TODO: Always respond with an object
+-- TODO: Add Error codes
 
 class FromDTO d m where
     fromDTO :: d -> m

@@ -8,18 +8,17 @@ module Feature.OrderOption.Service
     , deleteOrderOption
     ) where
 
-import Base.Types.UUID
-import Data.List.NonEmpty
 import qualified Feature.OrderOption.Persistence.Types as Persistence
 import Feature.OrderOption.Types
+import Persistence.UUID
 
-getAllOrderOptions :: (Persistence.Repo m) => m [OrderOption]
+getAllOrderOptions :: (Persistence.Repo m) => GetAllOrderOptions m
 getAllOrderOptions = Persistence.queryAll
 
-getOrderOptionById :: (Persistence.Repo m) => OrderOptionId -> m (Maybe OrderOption)
-getOrderOptionById = Persistence.queryById
+getOrderOptionById :: (Persistence.Repo m) => GetOrderOptionById m
+getOrderOptionById ooid = maybe (Left $ OrderOptionNotFound ooid) Right <$> Persistence.queryById ooid
 
-checkOrderOptionsExistence :: (Persistence.Repo m) => NonEmpty IffyOrderOptionId -> m (NonEmpty (Maybe OrderOptionId))
+checkOrderOptionsExistence :: (Persistence.Repo m) => CheckOrderOptionExistence m
 checkOrderOptionsExistence ids = do
     filtered <- Persistence.filterExisting ids
     pure $ compareWithExisting filtered <$> ids
@@ -28,13 +27,12 @@ checkOrderOptionsExistence ids = do
         | val `elem` fmap unOrderOptionId ooids = Just $ OrderOptionId val
         | otherwise = Nothing
 
-registerOrderOption :: (Persistence.Repo m, UUIDGen m) =>
-    OrderOptionPayload ->  m (Either RegisterOptionError OrderOptionId)
+registerOrderOption :: (Persistence.Repo m, UUIDGen m) => RegisterOrderOption m
 registerOrderOption payload = do
     optionId <- OrderOptionId <$> nextUUID
     result <- Persistence.insert (OrderOption optionId payload)
     pure (optionId <$ result)
 
-deleteOrderOption :: (Persistence.Repo m) => OrderOptionId -> m (Either DeleteOrderOptionError ())
+deleteOrderOption :: (Persistence.Repo m) => DeleteOrderOption m
 deleteOrderOption = Persistence.delete
 

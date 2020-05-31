@@ -2,15 +2,15 @@
 
 module Feature.Restaurant.Service where
 
-import Base.Types.UUID
 import Feature.Restaurant.Persistence.Types as Persistence
 import Feature.Restaurant.Types as Restaurant
+import Persistence.UUID
 
 getAllRestaurants :: (Repo m) => GetAllRestaurants m
 getAllRestaurants = queryAll
 
 getRestaurantById :: (Repo m) => GetRestaurantById m
-getRestaurantById = queryById
+getRestaurantById rid = maybe (Left $ RestaurantNotFound rid) Right <$> queryById rid
 
 registerRestaurant :: (Repo m, UUIDGen m) => RegisterRestaurant m
 registerRestaurant (RestaurantForCreate name coordinates) = do

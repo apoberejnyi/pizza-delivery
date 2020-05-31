@@ -3,14 +3,14 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Feature.Restaurant.Gateway.Dto where
+module Feature.Restaurant.Gateway.DTO where
 
-import Base.HTTP
-import Base.Types.Coordinates
 import Data.Aeson
+import Data.Coordinates
 import Data.Text
 import Data.UUID
 import Feature.Restaurant.Types
+import Gateway.Util
 import GHC.Generics
 import Prelude hiding ( id )
 

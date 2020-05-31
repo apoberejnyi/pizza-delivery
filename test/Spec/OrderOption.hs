@@ -4,7 +4,6 @@
 
 module Spec.OrderOption where
 
-import Base.Types.UUID
 import Control.Monad.Trans.State
 import Data.List.NonEmpty
 import Data.Maybe
@@ -12,6 +11,7 @@ import Data.UUID
 import qualified Feature.OrderOption.Persistence.Types
 import Feature.OrderOption.Service
 import Feature.OrderOption.Types
+import Persistence.UUID
 import Test.Hspec
 import Test.State
 

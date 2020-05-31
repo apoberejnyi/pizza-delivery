@@ -7,7 +7,6 @@ module Feature.OrderOption.Persistence.Repository
     , deleteOrderOption
     ) where
 
-import Base.PG
 import Control.Exception
 import Control.Monad.IO.Class
 import Data.Aeson
@@ -17,6 +16,7 @@ import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.FromRow
 import Database.PostgreSQL.Simple.ToRow
 import Feature.OrderOption.Types
+import Persistence.PG
 
 queryAllOrderOptions :: MonadIO m => m [OrderOption]
 queryAllOrderOptions = do
@@ -43,14 +43,15 @@ insertOrderOption option = do
       where
     insertQuery = "INSERT INTO OrderOptions (id, name, sizes) VALUES (?, ?, ?)"
     catchSqlException sqlError
-        | sqlState sqlError == "23505" = pure $ Left NameAlreadyInUse
+        | sqlState sqlError == "23505" = pure $ Left $ NameAlreadyInUse orderOptionName
         | otherwise = throw sqlError
+    orderOptionName = pizzaName $ orderOptionPayload option
 
 deleteOrderOption :: MonadIO m => OrderOptionId -> m (Either DeleteOrderOptionError ())
 deleteOrderOption (OrderOptionId ooid) = do
     updateCount <- withConn $ \conn -> execute conn "DELETE FROM OrderOptions WHERE id=?" (Only ooid)
     let result = if updateCount == 0
-        then Left $ OrderOptionNotFound (OrderOptionId ooid)
+        then Left $ OrderOptionDidNotExist (OrderOptionId ooid)
         else Right ()
     pure result
 

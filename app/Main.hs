@@ -1,9 +1,9 @@
 module Main (main) where
 
-import Base.PG
-import Foundation (startGateway)
+import Foundation ( startGateway )
 import LoadEnv
-import Prelude (IO)
+import Persistence.PG
+import Prelude ( IO )
 
 main :: IO ()
 main = do
