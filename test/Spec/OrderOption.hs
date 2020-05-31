@@ -27,7 +27,7 @@ spec = describe "Order Options Service" $ do
                     }
 
             let (result , testState) = runTest $
-                    setFixtures [GenerateUUID uuid] App >>
+                    (Test . setFixtures) [GenerateUUID uuid] >>
                     registerOrderOption payload
 
             result `shouldBe` expected
@@ -51,25 +51,25 @@ spec = describe "Order Options Service" $ do
                     ]
 
             let (result, _) = runTest $
-                    setFixtures [CheckExistence filteredIds] App >>
+                    (Test . setFixtures) [CheckExistence filteredIds] >>
                     checkOrderOptionsExistence idsToCheck
 
             result `shouldBe` expected
 
-newtype App m = App { unApp :: State OrderOptionTest m } deriving (Functor, Applicative, Monad)
+newtype Test m = Test { unTest :: State OrderOptionTest m } deriving (Functor, Applicative, Monad)
 
-instance Feature.OrderOption.Persistence.Types.Repo App where
+instance Feature.OrderOption.Persistence.Types.Repo Test where
     filterExisting _ = do
-        putEvent CalledFilterExisting App
-        withFixture [] App $ \fs -> do
+        (Test . putEvent) CalledFilterExisting
+        (Test . withFixture []) $ \fs -> do
             f@(CheckExistence v) <- fs
             pure (v,f)
     insert _ = do
-        putEvent CalledInject App
+        Test $ putEvent CalledInject
         pure $ Right ()
 
-instance UUIDGen App where
-    nextUUID = withFixture (error "No default UUID") App $ \fs -> do
+instance UUIDGen Test where
+    nextUUID = Test $ withFixture (error "No default UUID") $ \fs -> do
         f@(GenerateUUID v) <- fs
         pure (v,f)
 
@@ -87,5 +87,5 @@ type OrderOptionTest = TestState TestEvent Fixture
 asUUID :: String -> UUID
 asUUID = fromJust . fromString
 
-runTest :: App a -> (a, OrderOptionTest)
-runTest app = runState (unApp app) (TestState [] [])
+runTest :: Test a -> (a, OrderOptionTest)
+runTest test = runState (unTest test) (TestState [] [])

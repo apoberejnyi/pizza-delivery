@@ -41,7 +41,7 @@ spec = describe "Order Service" $
                         }
                     ]
             let (result , _) = runTest $
-                    setFixtures [ResolveAddress resolvedLocations, GetAllRestaurants availableRestaurants] App >>
+                    (Test . setFixtures) [ResolveAddress resolvedLocations, GetAllRestaurants availableRestaurants] >>
                     placeOrder payload
             orderRestaurantId (right result) `shouldBe` RestaurantId (asUUID "20557362-2281-4994-8df9-d7d81395e726")
 
@@ -63,7 +63,7 @@ spec = describe "Order Service" $
                     , (Address "Paradise City, Blue Sky Street", Coordinates 10 21)
                     ]
             let (result , _) = runTest $
-                    setFixtures [ResolveAddress resolvedLocations] App >>
+                    (Test . setFixtures) [ResolveAddress resolvedLocations] >>
                     placeOrder payload
             left result `shouldBe` AmbiguousAddress (fst <$> fromList resolvedLocations)
 
@@ -73,7 +73,7 @@ spec = describe "Order Service" $
                     , iffyOrderPayloadAddress = IffyAddress "Paradise City, Green Grass Street"
                     }
             let (result , _) = runTest $
-                    setFixtures [ResolveAddress []] App >>
+                    (Test . setFixtures) [ResolveAddress []] >>
                     placeOrder payload
             left result `shouldBe` AddressNotFound
 
@@ -83,7 +83,7 @@ spec = describe "Order Service" $
                     , iffyOrderPayloadAddress = IffyAddress "Paradise City, Green Grass Street"
                     }
             let (result , _) = runTest $
-                    setFixtures [GetAllRestaurants []] App >>
+                    (Test . setFixtures) [GetAllRestaurants []] >>
                     placeOrder payload
             left result `shouldBe` NoRestaurantsAvailable
 
@@ -99,7 +99,7 @@ spec = describe "Order Service" $
                     , iffyOrderPayloadAddress = IffyAddress "Paradise City, Green Grass Street"
                     }
             let (result , _) = runTest $
-                    setFixtures [CheckOrderOptionsExistence validatedItems] App >>
+                    (Test . setFixtures) [CheckOrderOptionsExistence validatedItems] >>
                     placeOrder payload
             left result `shouldBe` UnknownOrderOption (IffyOrderOptionId (asUUID "631c225f-0a0d-4b04-a937-d87d50005698"))
 
@@ -113,22 +113,22 @@ data Events = InsertedOrder
     deriving (Eq, Show)
 
 type OrderTest = TestState Events Fixtures
-newtype App m = App { unApp :: State OrderTest m } deriving (Functor, Applicative, Monad)
+newtype Test m = Test { unTest :: State OrderTest m } deriving (Functor, Applicative, Monad)
 
-instance AddressResolver App where
-    resolveAddress _ = withFixture defaultLocations App $ \fs -> do
+instance AddressResolver Test where
+    resolveAddress _ = (Test . withFixture defaultLocations) $ \fs -> do
         f@(ResolveAddress v) <- fs
         pure (v,f)
             where
         defaultLocations = [(Address "Paradise City, Green Grass Street", Coordinates 10 20)]
 
-instance Order.Persistence.Repo App where
+instance Order.Persistence.Repo Test where
     insert _ = do
-        putEvent InsertedOrder App
+        (Test . putEvent) InsertedOrder
         pure ()
 
-instance Restaurant.Service App where
-    getAll = withFixture [defaultRestaurant] App $ \fs -> do
+instance Restaurant.Service Test where
+    getAll = (Test . withFixture [defaultRestaurant]) $ \fs -> do
         f@(GetAllRestaurants v) <- fs
         pure (v,f)
             where
@@ -138,23 +138,23 @@ instance Restaurant.Service App where
             , restaurantCoordinates = Coordinates 11 21
             }
 
-instance OrderOption.Service App where
-    checkExistence ids = withFixture defaultVal App $ \fs -> do
+instance OrderOption.Service Test where
+    checkExistence ids = (Test . withFixture defaultVal) $ \fs -> do
         f@(CheckOrderOptionsExistence v) <- fs
         pure (v,f)
             where
         defaultVal = fmap markValid ids
         markValid = Just . OrderOptionId . unIffyOrderOptionId
 
-instance Concurrent App where
+instance Concurrent Test where
     concurrently3 a b c = do
         a' <- a; b' <- b; c' <- c
         pure (a', b', c')
 
-instance UUIDGen App where
-    nextUUID = withFixture (error "No default UUID") App $ \fs -> do
+instance UUIDGen Test where
+    nextUUID = (Test . withFixture (error "No default UUID")) $ \fs -> do
         f@(GenerateUUID v) <- fs
         pure (v,f)
 
-runTest :: App a -> (a, OrderTest)
-runTest app = runState (unApp app) (TestState [] [])
+runTest :: Test a -> (a, OrderTest)
+runTest app = runState (unTest app) (TestState [] [])
