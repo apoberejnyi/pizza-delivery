@@ -1,3 +1,5 @@
+{-# LANGUAGE DuplicateRecordFields #-}
+
 module Feature.Restaurant.Types where
 
 import Base.Types.Coordinates ( Coordinates )
@@ -24,7 +26,10 @@ data Restaurant = Restaurant
     }
     deriving (Eq)
 
-data RestaurantForCreate = RestaurantForCreate T.Text Coordinates
-data CreateRestaurantError = RestaurantNameAlreadyInUse
+data RestaurantForCreate = RestaurantForCreate
+    { restaurantName        :: T.Text
+    , restaurantCoordinates :: Coordinates
+    }
 
+data CreateRestaurantError = RestaurantNameAlreadyInUse
 newtype DeleteRestaurantError = RestaurantNotFound RestaurantId

@@ -1,27 +1,49 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Feature.Restaurant.Gateway.Dto where
 
+import Base.HTTP
 import Base.Types.Coordinates
-import Control.Applicative
 import Data.Aeson
+import Data.Text
+import Data.UUID
 import Feature.Restaurant.Types
+import GHC.Generics
+import Prelude hiding ( id )
 
-newtype RestaurantDto = RestaurantDto Restaurant
+instance ToJSON RestaurantDto
+data RestaurantDto = RestaurantDto
+    { id   :: UUID
+    , name :: Text
+    , lat  :: Double
+    , lon  :: Double
+    }
+    deriving (Generic)
 
-instance ToJSON RestaurantDto where
-    toJSON (RestaurantDto (Restaurant (RestaurantId rid) name (Coordinates lat lon))) = object
-        [ "id" .= rid
-        , "name" .= name
-        , "lat" .= lat
-        , "lon" .= lon
-        ]
+instance FromJSON RestaurantForCreateDto
+data RestaurantForCreateDto = RestaurantForCreateDto
+    { id   :: UUID
+    , name :: Text
+    , lat  :: Double
+    , lon  :: Double
+    }
+    deriving (Generic)
 
-newtype RestaurantForCreateDto = RestaurantForCreateDto RestaurantForCreate
+instance ToDTO RestaurantDto Restaurant where
+    toDTO Restaurant{..} = RestaurantDto
+        { id = unRestaurantId restaurantId
+        , name = restaurantName
+        , lat = lat'
+        , lon = lon'
+        }
+            where
+        Coordinates lat' lon' = restaurantCoordinates
 
-instance FromJSON RestaurantForCreateDto where
-    parseJSON = withObject "RestaurantForCreateDto" $ \v -> do
-        name <- v .: "name"
-        coordinates <- liftA2 Coordinates (v .: "lat") (v .: "lon")
-        let restaurant = RestaurantForCreate name coordinates
-        pure $ RestaurantForCreateDto restaurant
+instance FromDTO RestaurantForCreateDto RestaurantForCreate where
+    fromDTO RestaurantForCreateDto{..} = RestaurantForCreate
+        { restaurantName = name
+        , restaurantCoordinates = Coordinates lat lon
+        }

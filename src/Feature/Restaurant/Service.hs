@@ -1,3 +1,5 @@
+{-# LANGUAGE DuplicateRecordFields #-}
+
 module Feature.Restaurant.Service where
 
 import Base.Types.UUID
