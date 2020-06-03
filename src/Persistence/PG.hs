@@ -38,10 +38,10 @@ data PGConnectInfo = PGConnectInfo
 instance FromEnv PGConnectInfo where
   fromEnv _ =
     PGConnectInfo
-      <$> env "PG_HOST"
-      <*> env "PG_USER"
-      <*> env "PG_PASSWORD"
-      <*> env "PG_DATABASE"
+      <$> env "POSTGRES_HOST"
+      <*> env "POSTGRES_USER"
+      <*> env "POSTGRES_PASSWORD"
+      <*> env "POSTGRES_DB"
 
 populateConnectionDefaults :: PGConnectInfo -> ConnectInfo
 populateConnectionDefaults PGConnectInfo {..} = defaultConnectInfo
