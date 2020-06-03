@@ -5,14 +5,14 @@
 
 module Feature.OrderOption.Gateway.DTO where
 
-import Data.Aeson
-import Data.List.NonEmpty
-import Data.Text
-import Data.UUID
-import Feature.OrderOption.Types
-import Gateway.Util
-import GHC.Generics
-import Prelude hiding ( id )
+import           Data.Aeson
+import           Data.List.NonEmpty
+import           Data.Text
+import           Data.UUID
+import           Feature.OrderOption.Types
+import           Gateway.Util
+import           GHC.Generics
+import           Prelude                 hiding ( id )
 
 instance FromJSON OrderOptionDto
 instance ToJSON OrderOptionDto
@@ -40,29 +40,24 @@ data SizeDto = SizeDto
     deriving (Show, Generic)
 
 instance FromDTO OrderOptionDto OrderOption where
-    fromDTO OrderOptionDto{..} = OrderOption (OrderOptionId id) (Pizza name (fmap fromDTO sizes))
+  fromDTO OrderOptionDto {..} =
+    OrderOption (OrderOptionId id) (Pizza name (fmap fromDTO sizes))
 
 instance ToDTO OrderOptionDto OrderOption where
-    toDTO (OrderOption (OrderOptionId id') (Pizza name' sizes')) = OrderOptionDto
-        { id = id'
-        , name = name'
-        , sizes = fmap toDTO sizes'
-        }
+  toDTO (OrderOption (OrderOptionId id') (Pizza name' sizes')) =
+    OrderOptionDto { id = id', name = name', sizes = fmap toDTO sizes' }
 
 instance FromDTO OrderOptionPayloadDto OrderOptionPayload where
-    fromDTO OrderOptionPayloadDto{..} = Pizza name (fmap fromDTO sizes)
+  fromDTO OrderOptionPayloadDto {..} = Pizza name (fmap fromDTO sizes)
 
 instance ToDTO OrderOptionPayloadDto OrderOptionPayload where
-    toDTO (Pizza name' sizes') = OrderOptionPayloadDto
-        { name = name'
-        , sizes = fmap toDTO sizes'
-        }
+  toDTO (Pizza name' sizes') =
+    OrderOptionPayloadDto { name = name', sizes = fmap toDTO sizes' }
 
 instance FromDTO SizeDto PizzaSize where
-    fromDTO (SizeDto diameter cost) = PizzaSize (PizzaDiameter diameter) (PizzaCost cost)
+  fromDTO (SizeDto diameter cost) =
+    PizzaSize (PizzaDiameter diameter) (PizzaCost cost)
 
 instance ToDTO SizeDto PizzaSize where
-    toDTO (PizzaSize (PizzaDiameter diameter') (PizzaCost cost')) = SizeDto
-        { diameter = diameter'
-        , cost = cost'
-        }
+  toDTO (PizzaSize (PizzaDiameter diameter') (PizzaCost cost')) =
+    SizeDto { diameter = diameter', cost = cost' }

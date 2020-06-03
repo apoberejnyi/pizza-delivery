@@ -4,21 +4,22 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Feature.Order.Gateway.DTO
-    ( OrderDto
-    , IffyOrderPayloadDto,
-    ) where
+  ( OrderDto
+  , IffyOrderPayloadDto
+  )
+where
 
-import Data.Address
-import Data.Aeson
-import Data.List.NonEmpty
-import Data.Text
-import Data.UUID
-import Feature.Order.Types
-import Feature.OrderOption.Types
-import Feature.Restaurant.Types
-import Gateway.Util
-import GHC.Generics
-import Prelude hiding ( id )
+import           Data.Address
+import           Data.Aeson
+import           Data.List.NonEmpty
+import           Data.Text
+import           Data.UUID
+import           Feature.Order.Types
+import           Feature.OrderOption.Types
+import           Feature.Restaurant.Types
+import           Gateway.Util
+import           GHC.Generics
+import           Prelude                 hiding ( id )
 
 instance ToJSON OrderDto
 data OrderDto = OrderDto
@@ -38,22 +39,21 @@ data IffyOrderPayloadDto = IffyOrderPayloadDto
     deriving (Generic)
 
 instance ToDTO OrderDto Order where
-    toDTO Order{..} =
-        let OrderPayload{..} = orderPayload in
-        OrderDto
-            { id = unOrderId orderId
-            , status = OrderStatusJSON orderStatus
-            , items = unOrderOptionId <$> orderPayloadItems
-            , address = unAddress orderPayloadAddress
-            , restaurantId = unRestaurantId orderRestaurantId
-            }
+  toDTO Order {..} =
+    let OrderPayload {..} = payload
+    in  OrderDto { id           = unOrderId id
+                 , status       = OrderStatusJSON status
+                 , items        = unOrderOptionId <$> items
+                 , address      = unAddress address
+                 , restaurantId = unRestaurantId restaurantId
+                 }
 
 instance FromDTO IffyOrderPayloadDto IffyOrderPayload where
-    fromDTO IffyOrderPayloadDto{..} = IffyOrderPayload
-        { iffyOrderPayloadItems = IffyOrderOptionId <$> items
-        , iffyOrderPayloadAddress = IffyAddress address
-        }
+  fromDTO IffyOrderPayloadDto {..} = IffyOrderPayload
+    { items   = IffyOrderOptionId <$> items
+    , address = IffyAddress address
+    }
 
 newtype OrderStatusJSON = OrderStatusJSON { unOrderStatusJSON :: OrderStatus }
 instance ToJSON OrderStatusJSON where
-    toJSON = String . toLower . pack . show . unOrderStatusJSON
+  toJSON = String . toLower . pack . show . unOrderStatusJSON

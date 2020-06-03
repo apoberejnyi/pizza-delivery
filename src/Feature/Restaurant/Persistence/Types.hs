@@ -1,6 +1,7 @@
 module Feature.Restaurant.Persistence.Types where
 
-import Feature.Restaurant.Types
+import           Feature.Restaurant.Error
+import           Feature.Restaurant.Types
 
 type QueryAllRestaurants m = m [Restaurant]
 type QueryRestaurantById m = RestaurantId -> m (Maybe Restaurant)

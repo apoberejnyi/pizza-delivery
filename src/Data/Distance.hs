@@ -4,7 +4,7 @@ module Data.Distance
   )
 where
 
-import Data.Coordinates ( Coordinates (Coordinates) )
+import           Data.Coordinates               ( Coordinates(Coordinates) )
 
 type Distance = Double
 
@@ -14,11 +14,11 @@ getDistance (Coordinates lat1 lon1) (Coordinates lat2 lon2) = earthRadiusKm * c
  where
   earthRadiusKm = 6371
 
-  dLat = toRadians (lat2 - lat1)
-  dLon = toRadians (lon2 - lon1)
+  dLat          = toRadians (lat2 - lat1)
+  dLon          = toRadians (lon2 - lon1)
 
-  lat1Radians = toRadians lat1
-  lat2Radians = toRadians lat2
+  lat1Radians   = toRadians lat1
+  lat2Radians   = toRadians lat2
 
   a =
     sin (dLat / 2)

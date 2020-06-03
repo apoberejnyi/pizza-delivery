@@ -1,7 +1,8 @@
 module Feature.OrderOption.Persistence.Types where
 
-import Data.List.NonEmpty
-import Feature.OrderOption.Types
+import           Data.List.NonEmpty
+import           Feature.OrderOption.Error
+import           Feature.OrderOption.Types
 
 class Monad m => Repo m where
     queryAll :: m [OrderOption]

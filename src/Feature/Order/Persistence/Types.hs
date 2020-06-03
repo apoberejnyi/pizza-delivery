@@ -1,6 +1,7 @@
 module Feature.Order.Persistence.Types where
 
-import Feature.Order.Types hiding ( DeleteOrder, delete )
+import           Feature.Order.Error
+import           Feature.Order.Types
 
 type QueryAllOrders m = m [Order]
 type QueryOrderById m = OrderId -> m (Maybe Order)
