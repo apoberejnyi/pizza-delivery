@@ -2,9 +2,10 @@ version: "3"
 services:
   app:
     build: .
-    command: stack run
     ports:
       - 3000:3000
+    env_file:
+      - .env
     environment:
       - POSTGRES_HOST=postgres
     depends_on:
