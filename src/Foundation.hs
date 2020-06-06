@@ -1,19 +1,25 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE BangPatterns #-}
 
 module Foundation where
 
+import           Auth.Token                    as Token
 import qualified Client.OpenCage               as OpenCage
 import           Control.Concurrency
 import qualified Control.Concurrent.Async      as Async
 import           Control.Exception
 import           Control.Monad.IO.Class
+import           Control.Monad.Trans.Reader
+import           Control.Applicative
 import           Crypto.Random.Types
 import           Crypto.Random.Entropy
 import           Data.Address
 import qualified Data.UUID.V4                  as UUID
 import           Data.Generate.UUID
 import           Data.Generate.POSIXTime
+import           Data.Generate.UTCTime
 import qualified Feature.Order.Gateway.Endpoints
 import qualified Feature.Order.Persistence.Repository
 import qualified Feature.Order.Persistence.Types
@@ -39,24 +45,40 @@ import           Network.HTTP.Req
 import           System.Envy
 import           Data.Time.Clock.POSIX
 import           Web.Scotty.Trans
+import           GHC.Base
 
 startGateway :: IO ()
-startGateway = scottyT 3000 unAppT $ do
-  Feature.Order.Gateway.Endpoints.endpoints
-  Feature.Restaurant.Gateway.Endpoints.endpoints
-  Feature.OrderOption.Gateway.Endpoints.endpoints
-  Feature.User.Gateway.Endpoints.endpoints
-  notFoundRoute
+startGateway = do
+  run <- liftIO runApp
+  scottyT 3000 run $ do
+    Feature.Order.Gateway.Endpoints.endpoints
+    Feature.Restaurant.Gateway.Endpoints.endpoints
+    Feature.OrderOption.Gateway.Endpoints.endpoints
+    Feature.User.Gateway.Endpoints.endpoints
+    notFoundRoute
 
 newtype AppT a = AppT
-  { unAppT :: IO a
+  { unAppT :: ReaderT JwtConfig IO a
   } deriving  (Applicative, Functor, Monad, MonadIO)
+
+runApp :: IO (AppT a -> IO a)
+runApp = do
+  !(config :: JwtConfig) <- either error id <$> decodeEnv
+  pure $ \app -> (runReaderT . unAppT) app config
 
 instance UUIDGen AppT where
   nextUUID = liftIO UUID.nextRandom
 
+instance Token.Service AppT where
+  generate user time = AppT (generateToken user time)
+  validate = AppT . validateToken
+
 instance Concurrent AppT where
-  concurrently a b = liftIO $ Async.concurrently (unAppT a) (unAppT b)
+  concurrently (AppT a) (AppT b) = AppT $ liftIO =<< liftA2
+    Async.concurrently
+    (returnIO <$> a)
+    (returnIO <$> b)
+
   concurrently3 a b c = do
     (a', (b', c')) <- concurrently a (concurrently b c)
     pure (a', b', c')
@@ -109,10 +131,7 @@ instance Feature.Restaurant.Persistence.Types.Repo AppT where
   delete    = Feature.Restaurant.Persistence.Repository.deleteRestaurant
 
 instance Feature.User.Contract.Service AppT where
-  login email password = do
-    -- TODO: Use ReaderT to validate that env is provided on startup
-    config <- liftIO $ either error id <$> decodeEnv
-    Feature.User.Service.login config email password
+  login    = Feature.User.Service.login
   register = Feature.User.Service.registerUser
 
 instance Feature.User.Persistence.Contract.Repo AppT where
@@ -121,6 +140,9 @@ instance Feature.User.Persistence.Contract.Repo AppT where
 
 instance POSIXTimeGen AppT where
   currentTime = liftIO getPOSIXTime
+
+instance UTCTimeGen AppT where
+  currentTime = liftIO getCurrentTime
 
 instance MonadRandom AppT where
   getRandomBytes = liftIO . getEntropy

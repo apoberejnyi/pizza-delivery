@@ -3,7 +3,7 @@
 
 module Feature.User.Service where
 
-import           Feature.User.Config
+import           Auth.Token                    as Token
 import           Feature.User.Contract
 import           Feature.User.Error
 import           Feature.User.Types
@@ -14,10 +14,7 @@ import           Crypto.KDF.BCrypt              ( hashPassword
                                                 )
 import           Crypto.Random.Types
 import           Data.Text.Encoding            as E
-import qualified Web.JWT                       as JWT
 import           Prelude                 hiding ( id )
-import qualified Data.UUID                     as UUID
-import           Data.Time.Clock.POSIX
 import           Data.Generate.POSIXTime
 import           Data.Generate.UUID
 
@@ -33,30 +30,19 @@ registerUser UserForCreate {..} = do
   encodePassword = E.encodeUtf8 . unPassword
   decodeHash     = PasswordHash . E.decodeUtf8
 
-login :: (Persistence.Repo m, POSIXTimeGen m) => JwtConfig -> Login m
-login jwtConfig userEmail userPassword = do
+login :: (Persistence.Repo m, POSIXTimeGen m, Token.Service m) => Login m
+login userEmail userPassword = do
   lookupResult <- lookupPwdHash userEmail
   case lookupResult of
     HashNotFound -> notAuthenticated
     HashFound user hash ->
       if validatePassword (encodePassword userPassword) (encodeHash hash)
-        then Right . generateJwt jwtConfig user <$> currentTime
+        then Right <$> (Token.generate user =<< currentTime)
         else notAuthenticated
  where
   notAuthenticated = pure (Left NotAuthenticated)
   encodePassword   = E.encodeUtf8 . unPassword
   encodeHash       = E.encodeUtf8 . unPasswordHash
 
-generateJwt :: JwtConfig -> User -> POSIXTime -> AuthToken
-generateJwt JwtConfig {..} user now = AuthToken jwt
- where
-  jwt        = JWT.encodeSigned key joseHeader claims
-  key        = JWT.hmacSecret jwtSecret
-  joseHeader = mempty
-  claims     = mempty
-    { JWT.sub = JWT.stringOrURI (unpackUserId user)
-    , JWT.iat = JWT.numericDate now
-    , JWT.exp = JWT.numericDate (now + fromIntegral jwtExpirationSeconds)
-    }
-  unpackUserId = UUID.toText . unUserId . id
+
 

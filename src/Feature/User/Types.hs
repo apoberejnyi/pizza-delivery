@@ -28,4 +28,4 @@ data UserForCreate = UserForCreate
 newtype UserId = UserId { unUserId :: UUID } deriving (Eq, Show)
 newtype Password = Password { unPassword :: Text }
 newtype PasswordHash = PasswordHash { unPasswordHash :: Text } deriving (Eq)
-newtype AuthToken = AuthToken Text
+

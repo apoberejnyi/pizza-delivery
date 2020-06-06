@@ -17,8 +17,10 @@ import           Data.Coordinates
 import           Data.Distance
 import           Data.Either.Combinators
 import           Data.List.NonEmpty            as NEL
+import           Data.Time.Clock
 import           Data.UUID
 import           Data.Generate.UUID
+import           Data.Generate.UTCTime
 import qualified Feature.Order.Persistence.Types
                                                as Order
 import           Feature.Order.Contract
@@ -28,6 +30,7 @@ import           Feature.OrderOption.Contract  as OrderOption
 import           Feature.OrderOption.Types
 import           Feature.Restaurant.Contract   as Restaurant
 import           Feature.Restaurant.Types
+import           Feature.User.Types
 import           Prelude                 hiding ( id )
 
 getAllOrders :: (Order.Repo m) => GetAllOrders m
@@ -40,25 +43,28 @@ getOrderById oid =
 deleteOrder :: (Order.Repo m) => DeleteOrder m
 deleteOrder = Order.delete
 
-type PlaceOrderM m
+type PlaceOrderMonad m
   = ( UUIDGen m
     , Concurrent m
     , Restaurant.Service m
     , OrderOption.Service m
     , AddressResolver m
     , Order.Repo m
+    , UTCTimeGen m
     )
 
-placeOrder :: PlaceOrderM m => PlaceOrder m
-placeOrder IffyOrderPayload {..} = do
+placeOrder :: PlaceOrderMonad m => PlaceOrder m
+placeOrder userId IffyOrderPayload {..} = do
   uuid                              <- nextUUID
   (restaurants', addresses, items') <- concurrently3
     Restaurant.getAll
     (resolveAddress address)
     (validateOrderPayloadItems items)
+  now <- currentTime
 
   let restaurants = maybeToRight NoRestaurantsAvailable (nonEmpty restaurants')
-  let order       = join $ mkOrder uuid addresses <$> restaurants <*> items'
+  let order =
+        join $ mkOrder uuid addresses userId now <$> restaurants <*> items'
 
   mapM_ Order.insert order
   pure order
@@ -77,22 +83,28 @@ validateOrderPayloadItems items = do
 mkOrder
   :: UUID
   -> [Location]
+  -> UserId
+  -> UTCTime
   -> NonEmpty Restaurant
   -> NonEmpty OrderOptionId
   -> Either PlaceOrderError Order
-mkOrder uuid locations' restaurants ooids = case nonEmpty locations' of
-  Nothing        -> Left AddressNotFound
-  Just locations -> if NEL.length addresses > 1
-    then Left $ AmbiguousAddress addresses
-    else Right $ Order
-      { id           = OrderId uuid
-      , status       = Verification
-      , payload = OrderPayload { items = ooids, address = NEL.head addresses }
-      , restaurantId = (id :: Restaurant -> RestaurantId) closestRestaurant
-      }
-   where
-    (addresses, coordinates) = NEL.unzip locations
-    closestRestaurant = getClosestRestaurant restaurants $ NEL.head coordinates
+mkOrder uuid locations' userId now restaurants ooids =
+  case nonEmpty locations' of
+    Nothing        -> Left AddressNotFound
+    Just locations -> if NEL.length addresses > 1
+      then Left $ AmbiguousAddress addresses
+      else Right $ Order
+        { id           = OrderId uuid
+        , status       = Verification
+        , payload = OrderPayload { items = ooids, address = NEL.head addresses }
+        , restaurantId = (id :: Restaurant -> RestaurantId) closestRestaurant
+        , placedAt     = now
+        , userId       = userId
+        }
+     where
+      (addresses, coordinates) = NEL.unzip locations
+      closestRestaurant =
+        getClosestRestaurant restaurants $ NEL.head coordinates
 
 
 getClosestRestaurant :: NonEmpty Restaurant -> Coordinates -> Restaurant

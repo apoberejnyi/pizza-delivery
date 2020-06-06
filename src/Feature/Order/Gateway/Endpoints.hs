@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -11,12 +12,16 @@ import           Feature.Order.Gateway.DTO
 import           Feature.Order.Error
 import           Feature.Order.Contract        as Order
 import           Feature.Order.Types           as Order
+import           Auth.Token                    as Token
+import           Gateway.Auth
 import           Gateway.Error
 import           Gateway.Util
 import           Network.HTTP.Types
 import           Web.Scotty.Trans              as S
 
-endpoints :: (MonadIO m, Order.Service m) => ScottyT LT.Text m ()
+type OrderHttpMonad m = (MonadIO m, Order.Service m, Token.Service m)
+
+endpoints :: OrderHttpMonad m => ScottyT LT.Text m ()
 endpoints = do
   get "/api/orders" $ do
     result <- lift Order.getAll
@@ -30,8 +35,9 @@ endpoints = do
       Right order                 -> json (toDTO order :: OrderDto)
 
   post "/api/orders" $ do
+    userId' <- requestUserId
     (payloadDto :: IffyOrderPayloadDto) <- parseBody
-    result <- lift $ Order.place (fromDTO payloadDto)
+    result <- lift $ Order.place userId' (fromDTO payloadDto)
     case result of
       Right order -> S.status created201 >> json (toDTO order :: OrderDto)
       Left  err@NoRestaurantsAvailable -> httpError badRequest400 err

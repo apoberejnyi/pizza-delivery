@@ -25,6 +25,7 @@ dependencies:
   - scotty
   - async
   - wai
+  - wai-extra
   - transformers
   - aeson
   - text
@@ -39,6 +40,7 @@ dependencies:
   - cryptonite
   - email-validate
   - jwt
+  - data-has
   - time
 
 library:

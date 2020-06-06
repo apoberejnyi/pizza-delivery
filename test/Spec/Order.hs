@@ -19,7 +19,11 @@ import           Feature.OrderOption.Contract  as OrderOption
 import           Feature.OrderOption.Types
 import           Feature.Restaurant.Contract   as Restaurant
 import           Feature.Restaurant.Types
-import           Persistence.UUID
+import           Feature.User.Types
+import           Data.Time.Calendar
+import           Data.Time.Clock
+import           Data.Generate.UUID
+import           Data.Generate.UTCTime
 import           Test.Hspec
 import           Test.State
 import           Test.Util
@@ -48,13 +52,14 @@ spec = describe "Order Service" $ describe "Place order" $ do
             }
           ]
     let expectedRid = RestaurantId (u "20557362-2281-4994-8df9-d7d81395e726")
+    let userId'     = UserId (u "9a22501d-e382-4669-9de2-1bc2f7144369")
     let (result, _) =
           runTest
             $  (Test . setFixtures)
                  [ ResolveAddress resolvedLocations
                  , GetAllRestaurants availableRestaurants
                  ]
-            >> placeOrder orderPayload
+            >> placeOrder userId' orderPayload
     restaurantId (right result) `shouldBe` expectedRid
 
   it "should insert order upon success" $ do
@@ -64,7 +69,8 @@ spec = describe "Order Service" $ describe "Place order" $ do
           { items   = orderItems
           , address = IffyAddress "Paradise City, Green Grass Street"
           }
-    let (_, testState) = runTest $ placeOrder orderPayload
+    let userId'        = UserId (u "9a22501d-e382-4669-9de2-1bc2f7144369")
+    let (_, testState) = runTest $ placeOrder userId' orderPayload
     testEvents testState `shouldContain` [InsertedOrder]
 
   it "should reject if address is ambiguous" $ do
@@ -78,10 +84,11 @@ spec = describe "Order Service" $ describe "Place order" $ do
           [ (Address "Paradise City, Green Grass Street", Coordinates 10 20)
           , (Address "Paradise City, Blue Sky Street"   , Coordinates 10 21)
           ]
+    let userId' = UserId (u "9a22501d-e382-4669-9de2-1bc2f7144369")
     let (result, _) =
           runTest
             $  (Test . setFixtures) [ResolveAddress resolvedLocations]
-            >> placeOrder orderPayload
+            >> placeOrder userId' orderPayload
     left result `shouldBe` AmbiguousAddress (fst <$> fromList resolvedLocations)
 
   it "should reject if address is not found" $ do
@@ -91,10 +98,11 @@ spec = describe "Order Service" $ describe "Place order" $ do
           { items   = orderItems
           , address = IffyAddress "Paradise City, Green Grass Street"
           }
+    let userId' = UserId (u "9a22501d-e382-4669-9de2-1bc2f7144369")
     let (result, _) =
           runTest
             $  (Test . setFixtures) [ResolveAddress []]
-            >> placeOrder orderPayload
+            >> placeOrder userId' orderPayload
     left result `shouldBe` AddressNotFound
 
   it "should reject if no restaurants are available" $ do
@@ -104,10 +112,11 @@ spec = describe "Order Service" $ describe "Place order" $ do
           { items   = orderItems
           , address = IffyAddress "Paradise City, Green Grass Street"
           }
+    let userId' = UserId (u "9a22501d-e382-4669-9de2-1bc2f7144369")
     let (result, _) =
           runTest
             $  (Test . setFixtures) [GetAllRestaurants []]
-            >> placeOrder orderPayload
+            >> placeOrder userId' orderPayload
     left result `shouldBe` NoRestaurantsAvailable
 
   it "should reject non-existing order options" $ do
@@ -119,6 +128,7 @@ spec = describe "Order Service" $ describe "Place order" $ do
           [ Just (OrderOptionId (u "88163569-b0f8-4635-85db-d26545ad052a"))
           , Nothing
           ]
+    let userId' = UserId (u "9a22501d-e382-4669-9de2-1bc2f7144369")
     let orderPayload = IffyOrderPayload
           { items   = orderedItems
           , address = IffyAddress "Paradise City, Green Grass Street"
@@ -126,7 +136,7 @@ spec = describe "Order Service" $ describe "Place order" $ do
     let (result, _) =
           runTest
             $  (Test . setFixtures) [CheckOrderOptionsExistence validatedItems]
-            >> placeOrder orderPayload
+            >> placeOrder userId' orderPayload
     left result `shouldBe` UnknownOrderOption
       (IffyOrderOptionId (u "631c225f-0a0d-4b04-a937-d87d50005698"))
 
@@ -185,6 +195,9 @@ instance UUIDGen Test where
   nextUUID = (Test . withFixture (error "No default UUID")) $ \fs -> do
     f@(GenerateUUID v) <- fs
     pure (v, f)
+
+instance UTCTimeGen Test where
+  currentTime = pure $ UTCTime (fromGregorian 2000 1 1) 0
 
 runTest :: Test a -> (a, OrderTest)
 runTest app = runState (unTest app) (TestState [] [])

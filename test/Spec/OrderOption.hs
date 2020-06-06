@@ -11,7 +11,7 @@ import           Data.UUID
 import qualified Feature.OrderOption.Persistence.Types
 import           Feature.OrderOption.Service
 import           Feature.OrderOption.Types
-import           Persistence.UUID
+import           Data.Generate.UUID
 import           Test.Hspec
 import           Test.State
 
