@@ -18,6 +18,7 @@ import           Data.Distance
 import           Data.Either.Combinators
 import           Data.List.NonEmpty            as NEL
 import           Data.UUID
+import           Data.Generate.UUID
 import qualified Feature.Order.Persistence.Types
                                                as Order
 import           Feature.Order.Contract
@@ -27,7 +28,6 @@ import           Feature.OrderOption.Contract  as OrderOption
 import           Feature.OrderOption.Types
 import           Feature.Restaurant.Contract   as Restaurant
 import           Feature.Restaurant.Types
-import           Persistence.UUID
 import           Prelude                 hiding ( id )
 
 getAllOrders :: (Order.Repo m) => GetAllOrders m

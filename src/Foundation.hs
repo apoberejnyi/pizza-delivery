@@ -8,8 +8,12 @@ import           Control.Concurrency
 import qualified Control.Concurrent.Async      as Async
 import           Control.Exception
 import           Control.Monad.IO.Class
+import           Crypto.Random.Types
+import           Crypto.Random.Entropy
 import           Data.Address
 import qualified Data.UUID.V4                  as UUID
+import           Data.Generate.UUID
+import           Data.Generate.POSIXTime
 import qualified Feature.Order.Gateway.Endpoints
 import qualified Feature.Order.Persistence.Repository
 import qualified Feature.Order.Persistence.Types
@@ -25,10 +29,15 @@ import qualified Feature.Restaurant.Persistence.Repository
 import qualified Feature.Restaurant.Persistence.Types
 import qualified Feature.Restaurant.Service
 import qualified Feature.Restaurant.Contract
+import qualified Feature.User.Gateway.Endpoints
+import qualified Feature.User.Persistence.Repository
+import qualified Feature.User.Persistence.Contract
+import qualified Feature.User.Service
+import qualified Feature.User.Contract
 import           Gateway.Util
 import           Network.HTTP.Req
-import           Persistence.UUID
 import           System.Envy
+import           Data.Time.Clock.POSIX
 import           Web.Scotty.Trans
 
 startGateway :: IO ()
@@ -36,6 +45,7 @@ startGateway = scottyT 3000 unAppT $ do
   Feature.Order.Gateway.Endpoints.endpoints
   Feature.Restaurant.Gateway.Endpoints.endpoints
   Feature.OrderOption.Gateway.Endpoints.endpoints
+  Feature.User.Gateway.Endpoints.endpoints
   notFoundRoute
 
 newtype AppT a = AppT
@@ -97,3 +107,20 @@ instance Feature.Restaurant.Persistence.Types.Repo AppT where
   queryById = Feature.Restaurant.Persistence.Repository.queryRestaurantById
   insert    = Feature.Restaurant.Persistence.Repository.insertRestaurant
   delete    = Feature.Restaurant.Persistence.Repository.deleteRestaurant
+
+instance Feature.User.Contract.Service AppT where
+  login email password = do
+    -- TODO: Use ReaderT to validate that env is provided on startup
+    config <- liftIO $ either error id <$> decodeEnv
+    Feature.User.Service.login config email password
+  register = Feature.User.Service.registerUser
+
+instance Feature.User.Persistence.Contract.Repo AppT where
+  insert        = Feature.User.Persistence.Repository.insertUser
+  lookupPwdHash = Feature.User.Persistence.Repository.lookupUserPwdHash
+
+instance POSIXTimeGen AppT where
+  currentTime = liftIO getPOSIXTime
+
+instance MonadRandom AppT where
+  getRandomBytes = liftIO . getEntropy

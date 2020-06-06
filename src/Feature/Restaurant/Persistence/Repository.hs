@@ -46,10 +46,9 @@ insertRestaurant restaurant@Restaurant {..} = do
  where
   insertQuery =
     "INSERT INTO restaurants (id, name, lat, lon) VALUES (?, ?, ?, ?)"
-  catchSqlException sqlError
-    | sqlState sqlError == "23505" = (pure . Left . RestaurantNameAlreadyInUse)
-      name
-    | otherwise = throw sqlError
+  catchSqlException sqlError | sqlState sqlError == "23505" = nameInUse
+                             | otherwise                    = throw sqlError
+  nameInUse = (pure . Left . RestaurantNameAlreadyInUse) name
 
 deleteRestaurant :: MonadIO m => Persistence.DeleteRestaurant m
 deleteRestaurant rid'@(RestaurantId rid) = do

@@ -27,9 +27,9 @@ queryAllOrders = do
 
 queryOrderById :: MonadIO m => QueryOrderById m
 queryOrderById (OrderId oid) = do
-  results <- withConn
-    $ \conn -> query conn "SELECT ? FROM orders WHERE id=?" (Only oid)
+  results <- withConn $ \conn -> query conn lookupQuery (Only oid)
   pure $ unOrderEntity <$> listToMaybe results
+  where lookupQuery = "SELECT " <> fields <> " FROM orders WHERE id=?"
 
 insertOrder :: MonadIO m => InsertOrder m
 insertOrder order = do
@@ -48,7 +48,7 @@ deleteOrder oid'@(OrderId oid) = do
   pure result
 
 fields :: Query
-fields = "id, status, items, address, restaurantId"
+fields = "id, status, items, address, restaurant_id"
 
 newtype OrderEntity = OrderEntity { unOrderEntity :: Order }
 

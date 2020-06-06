@@ -9,12 +9,12 @@ module Feature.OrderOption.Service
   )
 where
 
+import           Data.Generate.UUID
 import qualified Feature.OrderOption.Persistence.Types
                                                as Persistence
 import           Feature.OrderOption.Contract
 import           Feature.OrderOption.Error
 import           Feature.OrderOption.Types
-import           Persistence.UUID
 
 getAllOrderOptions :: (Persistence.Repo m) => GetAllOrderOptions m
 getAllOrderOptions = Persistence.queryAll

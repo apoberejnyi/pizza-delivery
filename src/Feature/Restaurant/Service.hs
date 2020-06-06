@@ -3,12 +3,12 @@
 
 module Feature.Restaurant.Service where
 
+import           Data.Generate.UUID
 import           Feature.Restaurant.Persistence.Types
                                                as Persistence
 import           Feature.Restaurant.Contract   as Restaurant
 import           Feature.Restaurant.Error
 import           Feature.Restaurant.Types
-import           Persistence.UUID
 
 getAllRestaurants :: (Repo m) => GetAllRestaurants m
 getAllRestaurants = queryAll
