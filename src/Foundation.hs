@@ -10,6 +10,7 @@ module Foundation where
 import qualified Feature.Auth.Contract
 import qualified Feature.Auth.Service
 import           Feature.Auth.Config
+import qualified Feature.Auth.Gateway.Endpoints
 import           Client.OpenCage               as OpenCage
 import           Control.Concurrency
 import qualified Control.Concurrent.Async      as Async
@@ -63,6 +64,7 @@ startGateway = do
     Feature.Restaurant.Gateway.Endpoints.endpoints
     Feature.OrderOption.Gateway.Endpoints.endpoints
     Feature.User.Gateway.Endpoints.endpoints
+    Feature.Auth.Gateway.Endpoints.endpoints
     notFoundRoute
 
 type Env = (JwtConfig, Pool Connection, OpenCageConfig)
@@ -83,10 +85,6 @@ runApp = do
 
 instance UUIDGen AppT where
   nextUUID = liftIO UUID.nextRandom
-
-instance Feature.Auth.Contract.Service AppT where
-  generate = Feature.Auth.Service.generateToken
-  validate = Feature.Auth.Service.validateToken
 
 instance Concurrent AppT where
   concurrently (AppT a) (AppT b) = AppT $ liftIO =<< liftA2
@@ -143,9 +141,13 @@ instance Feature.Restaurant.Persistence.Types.Repo AppT where
   insert    = Feature.Restaurant.Persistence.Repository.insertRestaurant
   delete    = Feature.Restaurant.Persistence.Repository.deleteRestaurant
 
+instance Feature.Auth.Contract.Service AppT where
+  login    = Feature.Auth.Service.login
+  validate = Feature.Auth.Service.validateToken
+
 instance Feature.User.Contract.Service AppT where
-  login    = Feature.User.Service.login
-  register = Feature.User.Service.registerUser
+  lookupPwdHash = Feature.User.Service.lookupUserPasswordHash
+  register      = Feature.User.Service.registerUser
 
 instance Feature.User.Persistence.Contract.Repo AppT where
   insert        = Feature.User.Persistence.Repository.insertUser

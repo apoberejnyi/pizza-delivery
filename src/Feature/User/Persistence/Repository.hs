@@ -8,6 +8,7 @@ import           Data.Maybe
 import           Text.Email.Parser
 import           Feature.User.Error
 import           Feature.User.Types
+import           Feature.User.Contract
 import           Feature.User.Persistence.Contract
 import           Feature.User.Persistence.Entity
 import           Control.Exception

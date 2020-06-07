@@ -5,8 +5,6 @@ module Feature.User.Error where
 import           Control.Error
 import           Text.Email.Parser
 
-data NotAuthenticated = NotAuthenticated
-
 newtype RegisterUserError = EmailAlreadyInUse EmailAddress deriving (Eq)
 
 instance Show RegisterUserError where

@@ -1,12 +1,13 @@
 module Feature.Auth.Contract where
 
-import           Data.Time.Clock.POSIX
-import           Feature.Auth.Types
 import           Feature.User.Types
+import           Feature.Auth.Error
+import           Feature.Auth.Types
+import           Text.Email.Parser
 
-type GenerateToken m = User -> POSIXTime -> m AuthToken
 type ValidateToken m = AuthToken -> m (Maybe UserId)
+type Login m = EmailAddress -> Password -> m (Either NotAuthenticated AuthToken)
 
 class (Monad m) => Service m where
-  generate :: GenerateToken m
   validate :: ValidateToken m
+  login :: Login m
