@@ -2,7 +2,8 @@
 
 module Gateway.Auth where
 
-import           Auth.Token                    as Token
+import           Feature.Auth.Contract         as Token
+import           Feature.Auth.Types
 import           Feature.User.Types
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Class

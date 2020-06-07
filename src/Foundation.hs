@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -5,8 +7,10 @@
 
 module Foundation where
 
-import           Auth.Token                    as Token
-import qualified Client.OpenCage               as OpenCage
+import qualified Feature.Auth.Contract
+import qualified Feature.Auth.Service
+import           Feature.Auth.Config
+import           Client.OpenCage               as OpenCage
 import           Control.Concurrency
 import qualified Control.Concurrent.Async      as Async
 import           Control.Exception
@@ -41,9 +45,13 @@ import qualified Feature.User.Persistence.Contract
 import qualified Feature.User.Service
 import qualified Feature.User.Contract
 import           Gateway.Util
+import           Control.Monad.Reader
 import           Network.HTTP.Req
 import           System.Envy
 import           Data.Time.Clock.POSIX
+import           Data.Pool
+import           Database.PostgreSQL.Simple
+import           Persistence.PG
 import           Web.Scotty.Trans
 import           GHC.Base
 
@@ -57,21 +65,28 @@ startGateway = do
     Feature.User.Gateway.Endpoints.endpoints
     notFoundRoute
 
+type Env = (JwtConfig, Pool Connection, OpenCageConfig)
+
 newtype AppT a = AppT
-  { unAppT :: ReaderT JwtConfig IO a
-  } deriving  (Applicative, Functor, Monad, MonadIO)
+  { unAppT :: ReaderT Env IO a
+  } deriving  (Applicative, Functor, Monad, MonadIO, MonadReader Env)
+
+-- instance MonadTrans (AppT) where
 
 runApp :: IO (AppT a -> IO a)
 runApp = do
-  !(config :: JwtConfig) <- either error id <$> decodeEnv
-  pure $ \app -> (runReaderT . unAppT) app config
+  !(jwtConfig :: JwtConfig)           <- either error id <$> decodeEnv
+  !connectionPool                     <- initPool
+  !(openCageConfig :: OpenCageConfig) <- either error id <$> decodeEnv
+  pure $ \app ->
+    (runReaderT . unAppT) app (jwtConfig, connectionPool, openCageConfig)
 
 instance UUIDGen AppT where
   nextUUID = liftIO UUID.nextRandom
 
-instance Token.Service AppT where
-  generate user time = AppT (generateToken user time)
-  validate = AppT . validateToken
+instance Feature.Auth.Contract.Service AppT where
+  generate = Feature.Auth.Service.generateToken
+  validate = Feature.Auth.Service.validateToken
 
 instance Concurrent AppT where
   concurrently (AppT a) (AppT b) = AppT $ liftIO =<< liftA2
@@ -87,9 +102,7 @@ instance MonadHttp AppT where
   handleHttpException = throw
 
 instance AddressResolver AppT where
-  resolveAddress address = do
-    envVars <- either error id <$> liftIO decodeEnv
-    OpenCage.resolveAddress envVars address
+  resolveAddress = OpenCage.resolveAddress
 
 instance Feature.Order.Contract.Service AppT where
   getAll  = Feature.Order.Service.getAllOrders

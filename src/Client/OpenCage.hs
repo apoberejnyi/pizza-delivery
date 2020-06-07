@@ -1,23 +1,30 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Client.OpenCage
   ( Client.OpenCage.resolveAddress
-  , OpenCageApiEnv(..)
+  , OpenCageConfig(..)
   )
 where
 
 import           Data.Address
 import           Data.Aeson
+import           Data.Has
 import           Data.Coordinates
 import           Data.Text
 import           GHC.Generics
 import           Network.HTTP.Req
 import           System.Envy
+import           Control.Monad.Reader
 
-resolveAddress :: (MonadHttp m) => OpenCageApiEnv -> IffyAddress -> m [Location]
-resolveAddress OpenCageApiEnv {..} (IffyAddress address) = do
+resolveAddress
+  :: (MonadHttp m, Has OpenCageConfig r, MonadReader r m)
+  => IffyAddress
+  -> m [Location]
+resolveAddress (IffyAddress address) = do
+  OpenCageConfig {..} <- asks getter
   let url = https "api.opencagedata.com" /: "geocode" /: "v1" /: "json"
   let query = mconcat
         [ "q" =: address
@@ -56,9 +63,9 @@ data Geometry = Geometry
     }
     deriving (Show, Generic)
 
-newtype OpenCageApiEnv = OpenCageApiEnv
+newtype OpenCageConfig = OpenCageConfig
     { apiKey :: Text
     }
 
-instance FromEnv OpenCageApiEnv where
-  fromEnv _ = OpenCageApiEnv <$> env "OPEN_CAGE_API_KEY"
+instance FromEnv OpenCageConfig where
+  fromEnv _ = OpenCageConfig <$> env "OPEN_CAGE_API_KEY"

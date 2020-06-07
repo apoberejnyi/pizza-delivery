@@ -1,6 +1,6 @@
 module Feature.User.Contract where
 
-import           Auth.Token
+import           Feature.Auth.Types
 import           Feature.User.Error
 import           Feature.User.Types
 import           Text.Email.Parser

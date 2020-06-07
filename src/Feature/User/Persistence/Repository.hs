@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -9,13 +10,12 @@ import           Feature.User.Error
 import           Feature.User.Types
 import           Feature.User.Persistence.Contract
 import           Feature.User.Persistence.Entity
-import           Control.Monad.IO.Class
 import           Control.Exception
 import           Persistence.PG
 import           Database.PostgreSQL.Simple
 import           Prelude                 hiding ( id )
 
-lookupUserPwdHash :: (MonadIO m) => LookupUserPwdHash m
+lookupUserPwdHash :: (PG r m) => LookupUserPwdHash m
 lookupUserPwdHash userEmail = do
   result <- withConn $ \conn -> query conn lookupQuery emailVal
   case listToMaybe result of
@@ -26,11 +26,11 @@ lookupUserPwdHash userEmail = do
     mconcat ["SELECT ", fieldsNames, " FROM ", tableName, " WHERE email=?"]
   emailVal = Only $ toByteString userEmail
 
-insertUser :: (MonadIO m) => InsertUser m
-insertUser user passwordHash = do
-  let result = withConn $ \conn -> execute conn insertQuery entity
-  liftIO $ catch (Right () <$ result) catchSqlException
+insertUser :: PG r m => InsertUser m
+insertUser user passwordHash = withConn safeInsert
  where
+  safeInsert conn = catch (Right () <$ unsafeInsert conn) catchSqlException
+  unsafeInsert conn = execute conn insertQuery entity
   insertQuery = mconcat
     [ "INSERT INTO "
     , tableName

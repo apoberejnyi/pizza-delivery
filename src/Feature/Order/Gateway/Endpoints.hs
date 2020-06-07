@@ -12,7 +12,7 @@ import           Feature.Order.Gateway.DTO
 import           Feature.Order.Error
 import           Feature.Order.Contract        as Order
 import           Feature.Order.Types           as Order
-import           Auth.Token                    as Token
+import           Feature.Auth.Contract         as Token
 import           Gateway.Auth
 import           Gateway.Error
 import           Gateway.Util

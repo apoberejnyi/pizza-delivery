@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Feature.OrderOption.Persistence.Repository
@@ -10,7 +11,6 @@ module Feature.OrderOption.Persistence.Repository
 where
 
 import           Control.Exception
-import           Control.Monad.IO.Class
 import           Data.Aeson
 import           Data.List.NonEmpty
 import           Data.Maybe
@@ -22,13 +22,13 @@ import           Feature.OrderOption.Types
 import           Persistence.PG
 import           Prelude                 hiding ( id )
 
-queryAllOrderOptions :: MonadIO m => m [OrderOption]
+queryAllOrderOptions :: PG r m => m [OrderOption]
 queryAllOrderOptions = do
   results <- withConn
     $ \conn -> query_ conn "SELECT id, name, sizes FROM OrderOptions"
   pure $ fmap unOrderOptionEntity results
 
-queryOrderOptionById :: MonadIO m => OrderOptionId -> m (Maybe OrderOption)
+queryOrderOptionById :: (PG r m) => OrderOptionId -> m (Maybe OrderOption)
 queryOrderOptionById (OrderOptionId ooid) = do
   results <- withConn $ \conn -> query
     conn
@@ -37,20 +37,18 @@ queryOrderOptionById (OrderOptionId ooid) = do
   pure $ unOrderOptionEntity <$> listToMaybe results
 
 filterExistingOrderOptionIds
-  :: MonadIO m => NonEmpty IffyOrderOptionId -> m [OrderOptionId]
+  :: (PG r m) => NonEmpty IffyOrderOptionId -> m [OrderOptionId]
 filterExistingOrderOptionIds ids = do
   results <- withConn
     $ \conn -> query conn "SELECT id FROM OrderOptions WHERE id in ?" ids'
   pure $ fmap (OrderOptionId . fromOnly) results
   where ids' = Only $ In $ toList (unIffyOrderOptionId <$> ids)
 
-insertOrderOption
-  :: MonadIO m => OrderOption -> m (Either RegisterOptionError ())
-insertOrderOption option = do
-  let result =
-        withConn $ \conn -> execute conn insertQuery (OrderOptionEntity option)
-  liftIO $ catch (Right () <$ result) catchSqlException
+insertOrderOption :: PG r m => OrderOption -> m (Either RegisterOptionError ())
+insertOrderOption option = withConn safeInsert
  where
+  safeInsert conn = catch (Right () <$ unsafeInsert conn) catchSqlException
+  unsafeInsert conn = execute conn insertQuery (OrderOptionEntity option)
   insertQuery = "INSERT INTO OrderOptions (id, name, sizes) VALUES (?, ?, ?)"
   catchSqlException sqlError
     | sqlState sqlError == "23505" = pure $ Left $ NameAlreadyInUse
@@ -59,7 +57,7 @@ insertOrderOption option = do
   orderOptionName = name $ payload option
 
 deleteOrderOption
-  :: MonadIO m => OrderOptionId -> m (Either DeleteOrderOptionError ())
+  :: PG r m => OrderOptionId -> m (Either DeleteOrderOptionError ())
 deleteOrderOption (OrderOptionId ooid) = do
   updateCount <- withConn
     $ \conn -> execute conn "DELETE FROM OrderOptions WHERE id=?" (Only ooid)

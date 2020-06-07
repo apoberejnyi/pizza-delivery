@@ -3,7 +3,7 @@
 
 module Feature.User.Service where
 
-import           Auth.Token                    as Token
+import           Feature.Auth.Contract         as Token
 import           Feature.User.Contract
 import           Feature.User.Error
 import           Feature.User.Types

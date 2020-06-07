@@ -5,7 +5,7 @@
 
 module Feature.User.Gateway.DTO where
 
-import           Auth.Token
+import           Feature.Auth.Types
 import           Data.Aeson
 import           Data.Address
 import           Data.Text                     as T

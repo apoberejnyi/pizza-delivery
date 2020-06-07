@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -11,26 +12,24 @@ module Feature.Restaurant.Persistence.Repository
 where
 
 import           Control.Exception
-import           Control.Monad.IO.Class
 import           Data.Coordinates
 import           Data.Maybe
 import           Database.PostgreSQL.Simple
 import           Database.PostgreSQL.Simple.FromRow
 import           Database.PostgreSQL.Simple.ToRow
-import           Feature.Restaurant.Persistence.Types
-                                               as Persistence
 import           Feature.Restaurant.Error
 import           Feature.Restaurant.Types
+import           Feature.Restaurant.Persistence.Types
 import           Persistence.PG
 import           Prelude                 hiding ( id )
 
-queryAllRestaurants :: MonadIO m => QueryAllRestaurants m
+queryAllRestaurants :: (PG r m) => QueryAllRestaurants m
 queryAllRestaurants = do
   result <- withConn
     $ \conn -> query_ conn "SELECT id, name, lat, lon FROM restaurants"
   pure $ fmap unRestaurantEntity result
 
-queryRestaurantById :: MonadIO m => QueryRestaurantById m
+queryRestaurantById :: (PG r m) => QueryRestaurantById m
 queryRestaurantById (RestaurantId rid) = do
   result <- withConn $ \conn -> query
     conn
@@ -38,19 +37,18 @@ queryRestaurantById (RestaurantId rid) = do
     (Only rid)
   pure $ unRestaurantEntity <$> listToMaybe result
 
-insertRestaurant :: MonadIO m => InsertRestaurant m
-insertRestaurant restaurant@Restaurant {..} = do
-  let result = withConn
-        $ \conn -> execute conn insertQuery (RestaurantEntity restaurant)
-  liftIO $ catch (Right () <$ result) catchSqlException
+insertRestaurant :: (PG r m) => InsertRestaurant m
+insertRestaurant restaurant@Restaurant {..} = withConn safeInsert
  where
+  safeInsert conn = catch (Right () <$ unsafeInsert conn) catchSqlException
+  unsafeInsert conn = execute conn insertQuery (RestaurantEntity restaurant)
   insertQuery =
     "INSERT INTO restaurants (id, name, lat, lon) VALUES (?, ?, ?, ?)"
   catchSqlException sqlError | sqlState sqlError == "23505" = nameInUse
                              | otherwise                    = throw sqlError
   nameInUse = (pure . Left . RestaurantNameAlreadyInUse) name
 
-deleteRestaurant :: MonadIO m => Persistence.DeleteRestaurant m
+deleteRestaurant :: PG r m => DeleteRestaurant m
 deleteRestaurant rid'@(RestaurantId rid) = do
   updateCount <- withConn
     $ \conn -> execute conn "DELETE FROM restaurants WHERE id=?" (Only rid)

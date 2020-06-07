@@ -2,33 +2,27 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Auth.Token
+module Feature.Auth.Service
   ( generateToken
   , validateToken
-  , AuthToken(..)
-  , Service
-  , generate
-  , validate
-  , JwtConfig
   )
 where
 
 import           Feature.User.Types
+import           Feature.Auth.Config
+import           Feature.Auth.Types
 import           Data.UUID                     as UUID
 import           Data.Has
 import qualified Web.JWT                       as JWT
 import           Prelude                 hiding ( id )
 import           Data.Time.Clock.POSIX
-import           System.Envy
-import           Data.Text                     as T
-import           Control.Monad.Trans.Reader
-
-class (Monad m) => Service m where
-  generate :: User -> POSIXTime -> m AuthToken
-  validate :: AuthToken -> m (Maybe UserId)
+import           Control.Monad.Reader
 
 generateToken
-  :: (Monad m, Has JwtConfig r) => User -> POSIXTime -> ReaderT r m AuthToken
+  :: (Monad m, Has JwtConfig r, MonadReader r m)
+  => User
+  -> POSIXTime
+  -> m AuthToken
 generateToken user now = mkJwt user now <$> asks getter
 
 mkJwt :: User -> POSIXTime -> JwtConfig -> AuthToken
@@ -45,7 +39,9 @@ mkJwt user now JwtConfig {..} = AuthToken jwt
   unpackUserId = UUID.toText . unUserId . id
 
 validateToken
-  :: (Monad m, Has JwtConfig r) => AuthToken -> ReaderT r m (Maybe UserId)
+  :: (Monad m, Has JwtConfig r, MonadReader r m)
+  => AuthToken
+  -> m (Maybe UserId)
 validateToken token = do
   config <- asks getter
   pure (validateToken' token config)
@@ -59,13 +55,3 @@ validateToken' (AuthToken token) JwtConfig {..} =
  where
   signer   = JWT.hmacSecret jwtSecret
   parseSub = fmap UserId . UUID.fromString . show
-
-newtype AuthToken = AuthToken Text
-
-data JwtConfig = JwtConfig
-  { jwtSecret :: T.Text
-  , jwtExpirationSeconds :: Int
-  }
-
-instance FromEnv JwtConfig where
-  fromEnv _ = JwtConfig <$> env "JWT_SECRET" <*> env "JWT_EXPIRATION_SECONDS"

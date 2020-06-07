@@ -1,32 +1,36 @@
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Persistence.PG
   ( withConn
-  , checkPGEnv
+  , initPool
+  , PG
   )
 where
 
-import           Control.Monad.IO.Class
+
+import           Control.Monad.Reader
 import           Data.Pool
+import           Data.Has
 import           Database.PostgreSQL.Simple
 import           System.Envy
 
-checkPGEnv :: IO ()
-checkPGEnv = () <$ connectionPool
+type PG r m = (MonadReader r m, Has (Pool Connection) r, MonadIO m)
 
-connectionPool :: MonadIO m => m (Pool Connection)
-connectionPool = do
+withConn :: PG r m => (Connection -> IO a) -> m a
+withConn action = do
+  pool <- asks getter
+  liftIO $ withResource pool action
+
+initPool :: MonadIO m => m (Pool Connection)
+initPool = do
   ci <- liftIO decodeEnv
   case ci of
     Left  message        -> error message
     Right connectionInfo -> do
       let connection = connect $ populateConnectionDefaults connectionInfo
       liftIO $ createPool connection close 1 10 10
-
-withConn :: MonadIO m => (Connection -> IO a) -> m a
-withConn action = do
-  pool <- connectionPool
-  liftIO $ withResource pool action
 
 data PGConnectInfo = PGConnectInfo
     { pgHost     :: String

@@ -28,6 +28,7 @@ dependencies:
   - wai-extra
   - transformers
   - aeson
+  - mtl
   - text
   - postgresql-simple
   - bytestring
