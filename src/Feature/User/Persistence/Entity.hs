@@ -4,9 +4,10 @@
 module Feature.User.Persistence.Entity where
 
 import           Data.Address
-import           Text.Email.Parser
+import           Text.Email.Validate
 import           Data.Aeson
 import           Data.List
+import           Data.Maybe
 import           Feature.User.Types
 import           Database.PostgreSQL.Simple
 import           Database.PostgreSQL.Simple.ToRow
@@ -35,6 +36,9 @@ fieldsPlaceholders :: Query
 fieldsPlaceholders = "?, ?, ?, ?, ?, ?::json[], ?"
 
 data UserEntity = UserEntity User PasswordHash
+
+fromEntity :: UserEntity -> User
+fromEntity (UserEntity u _) = u
 
 instance ToRow UserEntity where
   toRow (UserEntity User {..} (PasswordHash hash)) = toRow
@@ -65,7 +69,7 @@ instance FromRow UserEntity where
           , payload = UserPayload { firstName   = firstName
                                   , lastName    = lastName
                                   , phoneNumber = phoneNumber
-                                  , email       = read email'
+                                  , email = (fromJust . emailAddress) email'
                                   , addresses   = parseAddress <$> addresses'
                                   }
           }

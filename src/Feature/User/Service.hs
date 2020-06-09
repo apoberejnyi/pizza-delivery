@@ -13,6 +13,12 @@ import           Data.Text.Encoding            as E
 import           Prelude                 hiding ( id )
 import           Data.Generate.UUID
 
+getAllUsers :: (Persistence.Repo m) => GetAllUsers m
+getAllUsers = Persistence.getAll
+
+getUserById :: (Persistence.Repo m) => GetUserById m
+getUserById = Persistence.getById
+
 lookupUserPasswordHash :: (Persistence.Repo m) => LookupUserPwdHash m
 lookupUserPasswordHash = Persistence.lookupPwdHash
 
@@ -28,5 +34,5 @@ registerUser UserForCreate {..} = do
   encodePassword = E.encodeUtf8 . unPassword
   decodeHash     = PasswordHash . E.decodeUtf8
 
-
-
+deleteUser :: (Persistence.Repo m) => DeleteUser m
+deleteUser = Persistence.delete

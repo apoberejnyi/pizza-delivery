@@ -16,6 +16,23 @@ import           Persistence.PG
 import           Database.PostgreSQL.Simple
 import           Prelude                 hiding ( id )
 
+getAllUsers :: (PG r m) => GetAllUsers m
+getAllUsers = do
+  results <- withConn $ \conn -> query_ conn getAllQuery
+  pure $ fromEntity <$> results
+  where getAllQuery = mconcat ["SELECT ", fieldsNames, " FROM ", tableName]
+
+getUserById :: (PG r m) => GetUserById m
+getUserById userId'@(UserId userId) = do
+  results <- withConn $ \conn -> query conn getQuery (Only userId)
+  let user = case listToMaybe results of
+        Nothing     -> Left (UserNotFound userId')
+        Just entity -> Right (fromEntity entity)
+  pure user
+ where
+  getQuery =
+    mconcat ["SELECT ", fieldsNames, " FROM ", tableName, " WHERE id=?"]
+
 lookupUserPwdHash :: (PG r m) => LookupUserPwdHash m
 lookupUserPwdHash userEmail = do
   result <- withConn $ \conn -> query conn lookupQuery emailVal
@@ -47,5 +64,10 @@ insertUser user passwordHash = withConn safeInsert
   emailInUse = (pure . Left . EmailAlreadyInUse) (pickEmail user)
   pickEmail  = email . (payload :: User -> UserPayload)
 
-
-
+deleteUser :: PG r m => DeleteUser m
+deleteUser userId'@(UserId userId) = do
+  updateCount <- withConn $ \conn -> execute conn deleteQuery (Only userId)
+  let result =
+        if updateCount == 0 then Left (UserNotFound userId') else Right ()
+  pure result
+  where deleteQuery = mconcat ["DELETE FROM ", tableName, " WHERE id=?"]

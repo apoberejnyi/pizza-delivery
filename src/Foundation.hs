@@ -146,12 +146,19 @@ instance Feature.Auth.Contract.Service AppT where
   validate = Feature.Auth.Service.validateToken
 
 instance Feature.User.Contract.Service AppT where
+  getAll        = Feature.User.Service.getAllUsers
+  getById       = Feature.User.Service.getUserById
   lookupPwdHash = Feature.User.Service.lookupUserPasswordHash
   register      = Feature.User.Service.registerUser
+  delete        = Feature.User.Service.deleteUser
 
 instance Feature.User.Persistence.Contract.Repo AppT where
+  getAll        = Feature.User.Persistence.Repository.getAllUsers
+  getById       = Feature.User.Persistence.Repository.getUserById
   insert        = Feature.User.Persistence.Repository.insertUser
   lookupPwdHash = Feature.User.Persistence.Repository.lookupUserPwdHash
+  delete        = Feature.User.Persistence.Repository.deleteUser
+
 
 instance POSIXTimeGen AppT where
   currentTime = liftIO getPOSIXTime
