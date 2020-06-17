@@ -3,7 +3,6 @@
 module Gateway.Auth where
 
 import           Feature.Auth.Contract         as Auth
-import           Feature.Auth.Types
 import           Feature.User.Contract         as User
 import           Feature.User.Error
 import           Feature.User.Types
@@ -24,8 +23,8 @@ requestUserId = do
     Nothing    -> unauthorized
     Just token -> maybe unauthorized pure =<< lift (Auth.validateToken token)
  where
-  extractJwt   = fmap toToken . (extractBearerAuth . E.encodeUtf8 . TL.toStrict)
-  toToken      = AuthToken . E.decodeUtf8
+  extractJwt =
+    fmap E.decodeUtf8 . (extractBearerAuth . E.encodeUtf8 . TL.toStrict)
   unauthorized = status unauthorized401 >> finish
 
 allowRoles

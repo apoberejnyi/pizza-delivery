@@ -2,4 +2,7 @@ module Feature.Auth.Types where
 
 import           Data.Text
 
-newtype AuthToken = AuthToken Text
+data AuthToken = AuthToken
+  { tokenValue :: Text
+  , expiresIn :: Int
+  }

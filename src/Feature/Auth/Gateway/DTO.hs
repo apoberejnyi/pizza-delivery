@@ -1,5 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric #-}
 
 module Feature.Auth.Gateway.DTO where
@@ -20,11 +21,16 @@ data LoginDto = LoginDto
   deriving (Generic)
 
 instance ToJSON AuthTokenDto
-newtype AuthTokenDto = AuthTokenDto
-    { token :: Text
+data AuthTokenDto = AuthTokenDto
+    { access_token :: Text
+    , token_type :: Text
+    , expires_in :: Int
     }
     deriving (Generic)
 
 instance ToDTO AuthTokenDto AuthToken where
-  toDTO (AuthToken val) = AuthTokenDto val
+  toDTO token = AuthTokenDto { access_token = tokenValue token
+                             , token_type   = "bearer"
+                             , expires_in   = expiresIn token
+                             }
 

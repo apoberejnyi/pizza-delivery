@@ -14,6 +14,7 @@ import           Feature.Auth.Error
 import           Feature.Auth.Config
 import           Feature.Auth.Contract   hiding ( login )
 import           Data.Text.Encoding            as E
+import           Data.Text
 import           Feature.Auth.Types
 import           Data.UUID                     as UUID
 import           Data.Has
@@ -48,7 +49,7 @@ generateToken
 generateToken user now = mkJwt user now <$> asks getter
 
 mkJwt :: User -> POSIXTime -> JwtConfig -> AuthToken
-mkJwt user now JwtConfig {..} = AuthToken jwt
+mkJwt user now JwtConfig {..} = AuthToken jwt jwtExpirationSeconds
  where
   jwt        = JWT.encodeSigned key joseHeader claims
   key        = JWT.hmacSecret jwtSecret
@@ -61,15 +62,13 @@ mkJwt user now JwtConfig {..} = AuthToken jwt
   unpackUserId = UUID.toText . unUserId . id
 
 validateToken
-  :: (Monad m, Has JwtConfig r, MonadReader r m)
-  => AuthToken
-  -> m (Maybe UserId)
+  :: (Monad m, Has JwtConfig r, MonadReader r m) => Text -> m (Maybe UserId)
 validateToken token = do
   config <- asks getter
   pure (validateToken' token config)
 
-validateToken' :: AuthToken -> JwtConfig -> Maybe UserId
-validateToken' (AuthToken token) JwtConfig {..} =
+validateToken' :: Text -> JwtConfig -> Maybe UserId
+validateToken' token JwtConfig {..} =
   parseSub
     =<< JWT.sub
     =<< JWT.claims
