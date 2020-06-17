@@ -27,13 +27,14 @@ fields =
   , "phone_number"
   , "addresses"
   , "pwd_hash"
+  , "roles"
   ]
 
 fieldsNames :: Query
 fieldsNames = mconcat $ intersperse ", " fields
 
 fieldsPlaceholders :: Query
-fieldsPlaceholders = "?, ?, ?, ?, ?, ?::json[], ?"
+fieldsPlaceholders = "?, ?, ?, ?, ?, ?::json[], ?, ?"
 
 data UserEntity = UserEntity User PasswordHash
 
@@ -49,6 +50,7 @@ instance ToRow UserEntity where
     , phoneNumber
     , toAddressArray addresses
     , hash
+    , PGArray (unUserRole <$> roles)
     )
    where
     UserId uuid      = id
@@ -64,8 +66,11 @@ instance FromRow UserEntity where
     phoneNumber        <- field
     PGArray addresses' <- field
     passwordHash'      <- field
+    PGArray roles      <- field
+
     let user = User
           { id      = UserId uuid
+          , roles   = UserRole <$> roles
           , payload = UserPayload { firstName   = firstName
                                   , lastName    = lastName
                                   , phoneNumber = phoneNumber

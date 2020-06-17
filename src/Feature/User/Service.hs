@@ -26,7 +26,7 @@ registerUser :: (Persistence.Repo m, UUIDGen m, MonadRandom m) => RegisterUser m
 registerUser UserForCreate {..} = do
   userId <- UserId <$> nextUUID
   hash   <- decodeHash <$> hashPassword hashCost (encodePassword password)
-  let user = User { id = userId, payload = payload }
+  let user = User { id = userId, payload = payload, roles = [] }
   result <- insert user hash
   pure (user <$ result)
  where

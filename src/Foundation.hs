@@ -73,8 +73,6 @@ newtype AppT a = AppT
   { unAppT :: ReaderT Env IO a
   } deriving  (Applicative, Functor, Monad, MonadIO, MonadReader Env)
 
--- instance MonadTrans (AppT) where
-
 runApp :: IO (AppT a -> IO a)
 runApp = do
   !(jwtConfig :: JwtConfig)           <- either error id <$> decodeEnv
@@ -142,8 +140,8 @@ instance Feature.Restaurant.Persistence.Types.Repo AppT where
   delete    = Feature.Restaurant.Persistence.Repository.deleteRestaurant
 
 instance Feature.Auth.Contract.Service AppT where
-  login    = Feature.Auth.Service.login
-  validate = Feature.Auth.Service.validateToken
+  login         = Feature.Auth.Service.login
+  validateToken = Feature.Auth.Service.validateToken
 
 instance Feature.User.Contract.Service AppT where
   getAll        = Feature.User.Service.getAllUsers

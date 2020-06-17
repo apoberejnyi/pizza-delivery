@@ -7,7 +7,7 @@ import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Class
 import qualified Data.Text.Lazy                as LT
 import           Feature.OrderOption.Gateway.DTO
-import           Feature.OrderOption.Contract  as OrderOption
+import qualified Feature.OrderOption.Contract  as OrderOption
 import           Feature.OrderOption.Error
 import           Feature.OrderOption.Types
 import           Gateway.Error
@@ -35,7 +35,7 @@ endpoints = do
       Left err@(NameAlreadyInUse _) -> httpError conflict409 err
       Right ooid -> status created201 >> json (unOrderOptionId ooid)
 
-  S.delete "/api/orderOptions/:id" $ do
+  delete "/api/orderOptions/:id" $ do
     ooid   <- uuidParam "id"
     result <- lift $ OrderOption.delete (OrderOptionId ooid)
     case result of

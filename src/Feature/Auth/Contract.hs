@@ -9,5 +9,5 @@ type ValidateToken m = AuthToken -> m (Maybe UserId)
 type Login m = EmailAddress -> Password -> m (Either NotAuthenticated AuthToken)
 
 class (Monad m) => Service m where
-  validate :: ValidateToken m
+  validateToken :: ValidateToken m
   login :: Login m

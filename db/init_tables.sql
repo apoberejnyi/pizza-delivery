@@ -1,4 +1,4 @@
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id uuid NOT NULL,
     first_name text NOT NULL,
     last_name text,
@@ -6,11 +6,12 @@ CREATE TABLE users (
     phone_number text NOT NULL,
     addresses json [] NOT NULL,
     pwd_hash text NOT NULL,
+    roles text [],
 
     CONSTRAINT users_email UNIQUE (email)
 );
 
-CREATE TABLE orders (
+CREATE TABLE IF NOT EXISTS orders (
     id uuid NOT NULL,
     status varchar(50) NOT NULL,
     items uuid [] NOT NULL,
@@ -23,7 +24,7 @@ CREATE TABLE orders (
     CONSTRAINT orders_pkey PRIMARY KEY (id)
 );
 
-CREATE TABLE orderoptions (
+CREATE TABLE IF NOT EXISTS orderoptions (
     id uuid NOT NULL,
     name text NOT NULL,
     sizes json NOT NULL,
@@ -32,7 +33,7 @@ CREATE TABLE orderoptions (
     CONSTRAINT name UNIQUE (name)
 );
 
-CREATE TABLE restaurants (
+CREATE TABLE IF NOT EXISTS restaurants (
     id uuid NOT NULL,
     name text NOT NULL,
     lat real NOT NULL,

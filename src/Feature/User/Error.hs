@@ -9,7 +9,8 @@ import           Text.Email.Parser
 newtype UserNotFound = UserNotFound UserId
 
 instance Show UserNotFound where
-  show (UserNotFound userId) = mconcat ["User '", show userId, "' not found"]
+  show (UserNotFound userId) =
+    mconcat ["User '", show (unUserId userId), "' not found"]
 
 instance Error UserNotFound where
   code (UserNotFound _) = "User_NotFound"

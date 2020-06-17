@@ -3,7 +3,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Feature.Auth.Service
-  ( validateToken
+  ( Feature.Auth.Service.validateToken
   , login
   )
 where
